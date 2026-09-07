@@ -33,7 +33,8 @@ When in doubt, keep it out until a second consumer needs it.
   helper needs the filesystem, network, or plugin context, it belongs in a
   context-taking module (like `viewPicker.ts`) or in the consuming plugin.
 - **No new runtime dependencies.** Runtime deps are peer-only (`solid-js`,
-  `@opentui/*`, `@opencode-ai/plugin` per the consumers' own setup). Dev
+  `@opentui/*`, `@opencode-ai/plugin` per the consumers' own setup) plus
+  `zod` — allowed only in `schemas.ts` for boundary-shape parsing. Dev
   deps: `typescript`, `@types/node`, `prettier`, `lint-staged`, `husky`.
 
 ## Development loop

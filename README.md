@@ -58,6 +58,7 @@ renderer all derive from it.
 | `providers.ts` | `ZEN_PROVIDER`, `GO_PROVIDER`, `DEFAULT_PROVIDERS`, `providerLabel()`, `unwrap()`, `asArray()`, `modelId()`, `providerId()` | Beta-API shapes read defensively; never throw on unexpected payloads |
 | `rows.ts` | `short()`, `line()`, `bar()` | Pure text, no I/O |
 | `format.ts` | `fmt()`, `fmtCost()`, `until()` | Pure text, no I/O |
+| `schemas.ts` | `windowSchema`, `usageResponseSchema`, `integrationSchema`, `parseUsage()`, `parseIntegrationList()`, `connectedProviderIds()` | Zod schemas for untrusted boundary shapes; parse functions return `null` on mismatch so callers degrade to last-known-good |
 | `viewPicker.ts` | `PickerOption`, `PickerConfig`, `createViewPicker()` | See usage above; `selectable` gates views (e.g. connected-provider checks) |
 
 Everything is re-exported from the package root (`src/index.ts`).
