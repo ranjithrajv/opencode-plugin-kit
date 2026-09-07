@@ -34,6 +34,15 @@ export function unwrap(entry: any): any {
   return entry?.info ?? entry
 }
 
+/**
+ * True for assistant messages. Beta schema messages discriminate by `type`
+ * tags ("assistant", "user", ...), not a `role` field — tolerate both so the
+ * filter keeps working if a client exposes `role` instead.
+ */
+export function isAssistant(m: any): boolean {
+  return (m?.type ?? m?.role) === "assistant"
+}
+
 /** Normalize `{ data: [...] }` API responses (or a bare array) to an array. */
 export function asArray<T = any>(out: any): T[] {
   return Array.isArray(out) ? (out as T[]) : ((out as any)?.data ?? [])
