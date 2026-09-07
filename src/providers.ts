@@ -19,6 +19,16 @@ export function providerLabel(pid: string): string {
   return pid
 }
 
+/** Full display title for a provider — picker dialogs, view headers. */
+export function providerTitle(pid: string): string {
+  if (pid === ZEN_PROVIDER) return "Zen"
+  if (pid === GO_PROVIDER) return "Go"
+  if (pid === "google") return "Google"
+  if (pid === "zai-coding-plan") return "Z.AI"
+  if (pid === "huggingface") return "Hugging Face"
+  return pid
+}
+
 /** Unwrap a beta-API message entry: `{ info: {...} }` -> the inner object. */
 export function unwrap(entry: any): any {
   return entry?.info ?? entry
