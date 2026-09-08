@@ -4,6 +4,8 @@
 // recommender (`/model-view`): a registry of views, a durable selection, a
 // slash/palette command registered through a keymap layer (which only works
 // from a rendered `app` slot), a dialog picker, and a confirmation toast.
+import type { KitContext } from "./host.ts"
+import { registerKeymapCommand } from "./commands.ts"
 import { createSignal } from "solid-js"
 
 export interface PickerOption {
@@ -52,16 +54,17 @@ export interface ViewPicker<T extends PickerOption> {
   readonly registerCommand: () => void
 }
 
-export function createViewPicker<T extends PickerOption>(context: any, config: PickerConfig<T>): ViewPicker<T> {
+export function createViewPicker<T extends PickerOption>(context: KitContext, config: PickerConfig<T>): ViewPicker<T> {
   const registry = config.registry
   const first = registry[0]
   if (!first) throw new Error("createViewPicker: empty registry")
 
   const [currentID, setCurrentID] = createSignal<string>(first.id)
 
-  const store = (initial: { id: string }) => {
+  type StoredView = { id?: string }
+  const store = (initial: { id: string }): [StoredView, StoredView] | undefined => {
     try {
-      return context.storage.store(config.storageKey, { initial })
+      return context.storage.store(config.storageKey, { initial }) as [StoredView, StoredView]
     } catch {
       return undefined
     }
@@ -69,14 +72,14 @@ export function createViewPicker<T extends PickerOption>(context: any, config: P
 
   // Load the persisted pick, if any.
   try {
-    const [persisted] = store({ id: first.id })
-    if (persisted && registry.some((e) => e.id === persisted.id)) setCurrentID(persisted.id)
+    const persisted = store({ id: first.id })?.[0]
+    if (persisted?.id && registry.some((e) => e.id === persisted.id)) setCurrentID(persisted.id)
   } catch {
     // In-memory only.
   }
 
   const persist = (id: string) => {
-    const [s] = store({ id: first.id })
+    const s = store({ id: first.id })?.[0]
     if (s) s.id = id
   }
 
@@ -149,46 +152,25 @@ export function createViewPicker<T extends PickerOption>(context: any, config: P
   }
 
   // Keymap layers are owned by the calling component, so the command is
-  // registered from a rendered `app` slot — a layer registered directly in
-  // setup() never becomes active.
-  const registerCommand = () => {
-    try {
-      context.ui.slot({
-        append: "app",
-        render: () => {
-          try {
-            context.keymap.layer(() => ({
-              mode: "global",
-              priority: 10,
-              commands: [
-                {
-                  id: config.command.id,
-                  title: config.command.title(current()),
-                  description: config.command.description,
-                  group: config.command.group,
-                  palette: true,
-                  slash: {
-                    name: config.command.name,
-                    aliases: config.command.aliases,
-                    arguments: true,
-                  },
-                  suggested: true,
-                  run: (input?: string) => {
-                    void pick(input)
-                  },
-                },
-              ],
-            }))
-          } catch (err) {
-            console.warn("opencode-plugin-kit: keymap.layer unavailable", err)
-          }
-          return null
-        },
-      })
-    } catch (err) {
-      console.warn("opencode-plugin-kit: ui.slot unavailable", err)
-    }
-  }
+  // registered from a rendered `app` slot (see registerKeymapCommand). The
+  // factory form keeps the title fresh across palette renders.
+  const registerCommand = () =>
+    registerKeymapCommand(context, () => ({
+      id: config.command.id,
+      title: config.command.title(current()),
+      description: config.command.description,
+      group: config.command.group,
+      palette: true,
+      slash: {
+        name: config.command.name,
+        aliases: config.command.aliases,
+        arguments: true,
+      },
+      suggested: true,
+      run: (input?: string) => {
+        void pick(input)
+      },
+    }))
 
   return { current, currentID, apply, pick, registerCommand }
 }

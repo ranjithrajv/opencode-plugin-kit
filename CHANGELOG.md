@@ -5,23 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-09-07
+## [Unreleased]
 
 ### Added
 
-- Provider vocabulary (`providers.ts`): Zen/Go provider ids, `providerLabel`,
-  connected-provider discovery, and defensive beta-API shape helpers
-  (`unwrap`, `asArray`, `modelId`, `providerId`).
-- Sidebar row formatting (`rows.ts`): `short()` id truncation, padded
-  `label id (provider) value` lines with configurable width, `bar()` progress bar.
-- Number/date formatting (`format.ts`): `fmt()`, `fmtCost()`, `until()` reset countdowns.
-- Persisted view/filter picker (`viewPicker.ts`): registry, durable selection
-  via plugin storage, slash/palette command (keymap layer in `app` slot),
-  `dialog.select` picker, toast, and `selectable`/`unavailableMessage` gating.
-- Contributor docs: `CONTRIBUTING.md` (what belongs in the kit) and
-  `docs/opencode2-api.md` (API cheat-sheet).
+- Shared provider vocabulary (`providers.ts`) — Zen/Go provider ids, labels, discovery
+- Row formatting (`rows.ts`) — `short()`, `line()`, `bar()`
+- Number/date formatting (`format.ts`) — `fmt()`, `fmtCost()`, `until()`
+- Storage-backed cache (`cache.ts`) — `createCachedStore()`
+- Zod schemas (`schemas.ts`) — usage response, integration list parsing
+- View picker (`viewPicker.ts`) — registry + persistence + slash command + dialog + toast
+- Current model resolver (`currentModel.ts`) — `resolveCurrentModel()`
+- Connected providers tracker (`connectedProviders.ts`) — `createConnectedProviders()`
+- Cached resource (`cachedResource.ts`) — `createCachedResource()`
+- Message traversal (`messages.ts`) — `walkMessages()`, `sumProviderTokens()`
+- Polling fetcher (`pollingFetcher.ts`) — `createPollingFetcher()`
+- Session resource (`sidebarSlot.ts`) — `createSessionResource()`
+- Structural host types (`host.ts`) — `KitContext`, `KitMessageShape`
+- 156 tests across 12 test files
+- Vite+ developer tooling (format, lint, typecheck)
+- GitHub Actions CI
+- Pre-commit hooks via `vp staged`
 
-Initial consumers: [opencode-usage-quota-tracker](../opencode-usage-quota-tracker),
-[opencode-model-recommender](../opencode-model-recommender).
-
-[0.1.0]: https://github.com/ranjithraj/opencode-plugin-kit/releases/tag/v0.1.0
+[Unreleased]: https://github.com/ranjithraj/opencode-plugin-kit/compare/v0.1.0...HEAD

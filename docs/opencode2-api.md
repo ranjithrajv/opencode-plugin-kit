@@ -24,13 +24,13 @@ Responses are wrapped: `{"location": {...}, "data": ...}`. Helpers:
 
 ## Endpoints this kit (and its consumers) rely on
 
-| Endpoint | Shape | Used for |
-|---|---|---|
-| `GET /api/health` | `{ healthy, version, pid }` | Service liveness |
+| Endpoint               | Shape                                         | Used for                                                                                                                                 |
+| ---------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/health`      | `{ healthy, version, pid }`                   | Service liveness                                                                                                                         |
 | `GET /api/integration` | array of `{ id, name, methods, connections }` | **Connected providers**: `connections` is non-empty only when a key/OAuth credential is added. This is the same source `/connect` reads. |
-| `GET /api/provider` | array of provider descriptors | Available providers/settings |
-| `GET /api/plugin` | plugin activation state | Plugin discovery debugging |
-| `GET /openapi.json` | OpenAPI document | Source of truth for every path above |
+| `GET /api/provider`    | array of provider descriptors                 | Available providers/settings                                                                                                             |
+| `GET /api/plugin`      | plugin activation state                       | Plugin discovery debugging                                                                                                               |
+| `GET /openapi.json`    | OpenAPI document                              | Source of truth for every path above                                                                                                     |
 
 Prefer calling these from inside the TUI via the injected client rather than
 raw `fetch`: `context.client.integration.list()` returns the same integration
@@ -39,15 +39,15 @@ as a bootstrap cache (see `availableProviders()` in `src/providers.ts`).
 
 ## Plugin TUI context (`setup(context)`)
 
-| Surface | What it gives you | Kit notes |
-|---|---|---|
-| `context.client` | Generated OpenCode API client (typed, same contract as `/openapi.json`) | `client.integration.list()` for connected providers |
-| `context.data` | Reactive session/message/provider caches (`data.session.message.list(id)`, `data.session.list()`, …) | Consumers derive usage from message history here |
-| `context.storage` | `store(key, { initial })` (durable, cross-TUI) and `memory(key, …)` | `viewPicker.ts` persists the selection here |
-| `context.ui.slot({ replace/append: "…" , render })` | Slot tree contributions (`sidebar.footer`, `app`, …) | `render` receives the slot input **reactively** — reading a Solid signal inside it subscribes |
-| `context.keymap.layer(() => layer)` | Palette/slash/bound commands | ⚠️ **Gotcha:** layers are owned by the *calling component*. Registering in `setup()` silently no-ops; register inside a rendered `app` slot's `render` (return `null`). `viewPicker.ts` handles this for you. |
-| `context.ui.dialog` | `select`, `alert`, `confirm`, `prompt` (promise-based) | `viewPicker.ts` uses `dialog.select` |
-| `context.ui.toast` | `show({ title, message, variant })` | Switch confirmations |
+| Surface                                             | What it gives you                                                                                    | Kit notes                                                                                                                                                                                                     |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `context.client`                                    | Generated OpenCode API client (typed, same contract as `/openapi.json`)                              | `client.integration.list()` for connected providers                                                                                                                                                           |
+| `context.data`                                      | Reactive session/message/provider caches (`data.session.message.list(id)`, `data.session.list()`, …) | Consumers derive usage from message history here                                                                                                                                                              |
+| `context.storage`                                   | `store(key, { initial })` (durable, cross-TUI) and `memory(key, …)`                                  | `viewPicker.ts` persists the selection here                                                                                                                                                                   |
+| `context.ui.slot({ replace/append: "…" , render })` | Slot tree contributions (`sidebar.footer`, `app`, …)                                                 | `render` receives the slot input **reactively** — reading a Solid signal inside it subscribes                                                                                                                 |
+| `context.keymap.layer(() => layer)`                 | Palette/slash/bound commands                                                                         | ⚠️ **Gotcha:** layers are owned by the _calling component_. Registering in `setup()` silently no-ops; register inside a rendered `app` slot's `render` (return `null`). `viewPicker.ts` handles this for you. |
+| `context.ui.dialog`                                 | `select`, `alert`, `confirm`, `prompt` (promise-based)                                               | `viewPicker.ts` uses `dialog.select`                                                                                                                                                                          |
+| `context.ui.toast`                                  | `show({ title, message, variant })`                                                                  | Switch confirmations                                                                                                                                                                                          |
 
 ## Debugging
 

@@ -4,6 +4,7 @@
 import { readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
+import type { KitMessageShape } from "./host.ts"
 
 export const ZEN_PROVIDER = "opencode"
 export const GO_PROVIDER = "opencode-go"
@@ -30,7 +31,7 @@ export function providerTitle(pid: string): string {
 }
 
 /** Unwrap a beta-API message entry: `{ info: {...} }` -> the inner object. */
-export function unwrap(entry: any): any {
+export function unwrap(entry: KitMessageShape): KitMessageShape {
   return entry?.info ?? entry
 }
 
@@ -39,33 +40,72 @@ export function unwrap(entry: any): any {
  * tags ("assistant", "user", ...), not a `role` field — tolerate both so the
  * filter keeps working if a client exposes `role` instead.
  */
-export function isAssistant(m: any): boolean {
+export function isAssistant(m: KitMessageShape): boolean {
   return (m?.type ?? m?.role) === "assistant"
 }
 
 /** Normalize `{ data: [...] }` API responses (or a bare array) to an array. */
-export function asArray<T = any>(out: any): T[] {
+export function asArray<T = any>(out: unknown): T[] {
   return Array.isArray(out) ? (out as T[]) : ((out as any)?.data ?? [])
 }
 
 /** Model id from either a model-list object or a message/message-part shape. */
-export function modelId(m: any): string {
+export function modelId(m: KitMessageShape): string {
   return m?.model?.modelID ?? m?.modelID ?? m?.model?.id ?? m?.id ?? ""
 }
 
 /** Provider id from either a model-list object or a message/message-part shape. */
-export function providerId(m: any): string {
+export function providerId(m: KitMessageShape): string {
   return m?.model?.providerID ?? m?.providerID ?? ""
 }
 
 /** Display name, falling back to the model id when the API omits `name`. */
-export function modelName(m: any): string {
+export function modelName(m: KitMessageShape): string {
   return m?.name ?? modelId(m)
 }
 
 // ---------------------------------------------------------------------------
 // Dynamic provider discovery
 // ---------------------------------------------------------------------------
+
+const AUTH_PATH = () => join(homedir(), ".local/share/opencode/auth.json")
+
+/** Single defensive read of auth.json, keyed by provider id.
+ * Every consumer shares this parse so the path and shape handling can't drift. */
+export function readAuth(): Record<string, string> {
+  try {
+    const auth = JSON.parse(readFileSync(AUTH_PATH(), "utf8"))
+    const out: Record<string, string> = {}
+    for (const [id, cfg] of Object.entries(auth)) {
+      const key = (cfg as any)?.key
+      if (typeof key === "string" && key.trim()) out[id] = key.trim()
+    }
+    return out
+  } catch {
+    return {}
+  }
+}
+
+/** The API key for one provider, or "" when absent. */
+export function authKey(providerID: string): string {
+  return readAuth()[providerID] ?? ""
+}
+
+/** Whether the provider has a stored key (fallback when the integration
+ * list is unavailable, e.g. before the first client fetch). */
+export function hasKey(providerID: string): boolean {
+  return authKey(providerID) !== ""
+}
+
+/** Workspace keys in a preferred order, skipping missing ones.
+ * `fallbacks` are returned (still filtered) when none of `preferred` exist —
+ * used by the usage endpoint, which accepts any workspace key. */
+export function authKeys(preferred: string[], ...fallbacks: string[]): string[] {
+  const auth = readAuth()
+  const pick = (ids: string[]) => ids.map((id) => auth[id] ?? "").filter(Boolean)
+  const keys = pick(preferred)
+  return keys.length > 0 ? keys : pick(fallbacks)
+}
 
 const FALLBACK_PROVIDERS = [ZEN_PROVIDER, GO_PROVIDER] as const
 
@@ -80,17 +120,7 @@ let _providers: string[] | null = null
 export function availableProviders(): string[] {
   if (_providers) return _providers
 
-  const ids: string[] = []
-  try {
-    const auth = JSON.parse(readFileSync(join(homedir(), ".local/share/opencode/auth.json"), "utf8"))
-    for (const [id, cfg] of Object.entries(auth)) {
-      if ((cfg as any)?.key && typeof (cfg as any).key === "string") {
-        ids.push(id)
-      }
-    }
-  } catch {
-    // Unreadable — fall back to the two known defaults below.
-  }
+  const ids = Object.keys(readAuth())
 
   if (ids.length === 0) ids.push(...FALLBACK_PROVIDERS)
   if (process.env.HF_TOKEN && !ids.includes("huggingface")) {

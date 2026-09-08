@@ -101,3 +101,11 @@ sync when you adopt a new API surface.
 Open an issue with the OpenCode version (`opencode2 --version`), the plugin
 versions, and the relevant slice of `~/.local/share/opencode/log/opencode.log`
 with API keys, tokens, and session contents redacted.
+
+## Upstreaming patterns
+
+Patterns that belong in the OpenCode platform itself are tracked in
+[docs/UPSTREAM.md](docs/UPSTREAM.md) (`TRACK → PROVE → PACKAGE → SUBMIT →
+ABSORB → DELETE`). If you're contributing a kit module that wraps an
+undocumented platform behavior, file a row there too — the goal is to delete
+it upstream, not to grow it here.
