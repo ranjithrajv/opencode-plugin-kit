@@ -53,6 +53,6 @@ TEMPLATE — copy to here ----------------------------------------------------
 
 Link footers (update the version pins on release):
 
-[Unreleased]: https://github.com/ranjithraj/opencode-plugin-kit/compare/vX.Y.Z...HEAD
-[X.Y.Z]: https://github.com/ranjithraj/opencode-plugin-kit/releases/tag/vX.Y.Z
+[Unreleased]: https://github.com/ranjithrajv/opencode-plugin-kit/compare/vX.Y.Z...HEAD
+[X.Y.Z]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/vX.Y.Z
 -->
