@@ -1,3 +1,4 @@
+/** @jsxImportSource @opentui/solid */
 // Collapsible sidebar sections — the header pattern shared by the skill
 // lister and the plugin manager (both mirroring the built-in
 // opencode.sidebar.mcp widget). One implementation keeps every sidebar
