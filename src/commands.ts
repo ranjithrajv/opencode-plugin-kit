@@ -6,6 +6,7 @@
 // setup() never becomes active.
 import { createSignal } from "solid-js"
 import type { KitCommandEntry, KitContext } from "./host.ts"
+import { persistedCell } from "./cache.ts"
 import { showToast } from "./toast.ts"
 
 /**
@@ -68,18 +69,12 @@ export function createToggle(context: KitContext, config: ToggleConfig): Toggle 
   const [value, setValue] = createSignal(config.initial)
 
   type StoredToggle = { value?: boolean }
-  const store = (initial: StoredToggle): [StoredToggle, StoredToggle] | undefined => {
-    try {
-      return context.storage.store(config.storageKey, { initial }) as [StoredToggle, StoredToggle]
-    } catch {
-      return undefined
-    }
-  }
+  const cell = persistedCell<StoredToggle>(context, config.storageKey, { value: config.initial })
 
   // Restore the persisted pick, if readable.
   try {
-    const persisted = store({ value: config.initial })?.[0]
-    if (typeof persisted?.value === "boolean") setValue(persisted.value)
+    const persisted = cell.read()
+    if (persisted && typeof persisted.value === "boolean") setValue(persisted.value)
   } catch {
     // In-memory only.
   }
@@ -87,8 +82,9 @@ export function createToggle(context: KitContext, config: ToggleConfig): Toggle 
   const toggle = () => {
     const next = !value()
     setValue(next)
-    const s = store({ value: config.initial })?.[0]
-    if (s) s.value = next
+    cell.persist((s) => {
+      s.value = next
+    })
     const message = config.toast?.(next)
     if (message) showToast(context, message)
   }

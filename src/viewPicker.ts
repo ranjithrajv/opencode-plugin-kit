@@ -6,6 +6,7 @@
 // from a rendered `app` slot), a dialog picker, and a confirmation toast.
 import type { KitContext } from "./host.ts"
 import { registerKeymapCommand } from "./commands.ts"
+import { persistedCell } from "./cache.ts"
 import { createSignal } from "solid-js"
 
 export interface PickerOption {
@@ -62,25 +63,20 @@ export function createViewPicker<T extends PickerOption>(context: KitContext, co
   const [currentID, setCurrentID] = createSignal<string>(first.id)
 
   type StoredView = { id?: string }
-  const store = (initial: { id: string }): [StoredView, StoredView] | undefined => {
-    try {
-      return context.storage.store(config.storageKey, { initial }) as [StoredView, StoredView]
-    } catch {
-      return undefined
-    }
-  }
+  const cell = persistedCell<StoredView>(context, config.storageKey, { id: first.id })
 
   // Load the persisted pick, if any.
   try {
-    const persisted = store({ id: first.id })?.[0]
+    const persisted = cell.read()
     if (persisted?.id && registry.some((e) => e.id === persisted.id)) setCurrentID(persisted.id)
   } catch {
     // In-memory only.
   }
 
   const persist = (id: string) => {
-    const s = store({ id: first.id })?.[0]
-    if (s) s.id = id
+    cell.persist((s) => {
+      s.id = id
+    })
   }
 
   const current = () => registry.find((e) => e.id === currentID()) ?? first

@@ -1,14 +1,31 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { createRoot } from "solid-js"
-import { createConnectedProviders } from "../src/connectedProviders.ts"
+import { createConnectedProviders } from "../src/providers.ts"
 
-vi.mock("../src/providers.ts", () => ({
-  hasKey: (id: string) => id === "known-key",
-}))
-import { fakeContext } from "../src/testkit.ts"
+const AUTH_PATH = "/tmp/opencode/fakehome/.local/share/opencode/auth.json"
+
+vi.mock("node:os", () => ({ homedir: () => "/tmp/opencode/fakehome" }))
+
+const fsState: { content: string; throws: boolean } = { content: "{}", throws: false }
+
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs")>()
+  return {
+    ...actual,
+    readFileSync: (path: unknown) => {
+      if (path === AUTH_PATH) {
+        if (fsState.throws) throw new Error("boom")
+        return fsState.content
+      }
+      throw new Error(`unexpected read: ${String(path)}`)
+    },
+  }
+})
 
 beforeEach(() => {
   vi.useFakeTimers()
+  fsState.content = "{}"
+  fsState.throws = false
   delete process.env.HF_TOKEN
 })
 
@@ -24,28 +41,34 @@ function flush(): Promise<void> {
   return p as Promise<void>
 }
 
+/** Reset the module graph so availableProviders()'s memo re-reads auth.json
+ * under the current fsState (the memo is module-scoped). */
+async function freshProviders() {
+  vi.resetModules()
+  return import("../src/providers.ts")
+}
+
 describe("createConnectedProviders", () => {
-  test("reads the integration list and merges extras", async () => {
-    const ctx = fakeContext()
-    ctx.client.integration.list = vi.fn(() =>
-      Promise.resolve({ data: [{ id: "opencode", connections: [{ type: "key" }] }] }),
-    )
+  test("reads the integration list", async () => {
+    const ctx = fakeContextWith({
+      data: [{ id: "opencode", connections: [{ type: "key" }] }],
+    })
     const cp = createRoot((dispose) => {
-      const c = createConnectedProviders(ctx, { extra: ["google"], pollMs: 0 })
+      const c = createConnectedProviders(ctx, { pollMs: 0 })
       queueMicrotask(dispose)
       return c
     })
     await flush()
-    expect(cp.ids()).toEqual(new Set(["opencode", "google"]))
+    expect(cp.ids()).toEqual(new Set(["opencode"]))
     expect(cp.has("opencode")).toBe(true)
     expect(cp.has("opencode-go")).toBe(false)
   })
 
-  test("supports a function extra provider", async () => {
-    const ctx = fakeContext()
+  test("unions in huggingface when HF_TOKEN is set", async () => {
     process.env.HF_TOKEN = "hf"
+    const ctx = fakeContextWith({ data: [] })
     const cp = createRoot((dispose) => {
-      const c = createConnectedProviders(ctx, { extra: () => (process.env.HF_TOKEN ? ["huggingface"] : []), pollMs: 0 })
+      const c = createConnectedProviders(ctx, { pollMs: 0 })
       queueMicrotask(dispose)
       return c
     })
@@ -53,35 +76,38 @@ describe("createConnectedProviders", () => {
     expect(cp.has("huggingface")).toBe(true)
   })
 
-  test("falls back to auth.json-backed extras when the client throws", async () => {
-    const ctx = fakeContext()
-    ctx.client.integration.list = vi.fn(() => Promise.reject(new Error("no client")))
+  test("falls back to auth.json-based discovery when the client throws", async () => {
+    fsState.content = JSON.stringify({ opencode: { key: "k" }, google: { key: "g" } })
+    const { createConnectedProviders: freshCreate } = await freshProviders()
+    const ctx = fakeContextWith({ throws: true })
     const cp = createRoot((dispose) => {
-      // "known-key" has a key (mocked hasKey), "unknown" does not.
-      const c = createConnectedProviders(ctx, { extra: () => ["known-key", "unknown"], pollMs: 0 })
+      const c = freshCreate(ctx, { pollMs: 0 })
       queueMicrotask(dispose)
       return c
     })
     await flush()
-    expect(cp.ids()).toEqual(new Set(["known-key"]))
+    expect(cp.ids()).toEqual(new Set(["opencode", "google"]))
   })
 
-  test("no extras are connected when the client throws and extras is absent", async () => {
-    const ctx = fakeContext()
-    ctx.client.integration.list = vi.fn(() => Promise.reject(new Error("no client")))
+  test("fallback includes huggingface via HF_TOKEN even when auth.json is unreadable", async () => {
+    process.env.HF_TOKEN = "hf"
+    fsState.throws = true
+    const { createConnectedProviders: freshCreate } = await freshProviders()
+    const ctx = fakeContextWith({ throws: true })
     const cp = createRoot((dispose) => {
-      const c = createConnectedProviders(ctx, { pollMs: 0 })
+      const c = freshCreate(ctx, { pollMs: 0 })
       queueMicrotask(dispose)
       return c
     })
     await flush()
-    expect(cp.ids().size).toBe(0)
+    // auth.json unreadable -> Zen + Go fallback, plus the env provider.
+    expect(cp.has("opencode")).toBe(true)
+    expect(cp.has("opencode-go")).toBe(true)
+    expect(cp.has("huggingface")).toBe(true)
   })
 
   test("polls on the interval and refresh() forces an immediate poll", async () => {
-    const ctx = fakeContext()
-    let result = { data: [] as unknown[] }
-    ctx.client.integration.list = vi.fn(() => Promise.resolve(result))
+    const ctx = fakeContextWith({ data: [] })
     const cp = createRoot((_dispose) => {
       const c = createConnectedProviders(ctx, { pollMs: 1_000 })
       return c
@@ -89,7 +115,7 @@ describe("createConnectedProviders", () => {
     await flush()
     expect(ctx.client.integration.list).toHaveBeenCalledTimes(1)
 
-    result = { data: [{ id: "opencode-go", connections: [{ type: "key" }] }] }
+    fakeListResult.data = [{ id: "opencode-go", connections: [{ type: "key" }] }]
     await vi.advanceTimersByTimeAsync(1_000)
     expect(ctx.client.integration.list).toHaveBeenCalledTimes(2)
     expect(cp.has("opencode-go")).toBe(true)
@@ -99,7 +125,7 @@ describe("createConnectedProviders", () => {
   })
 
   test("stop() cancels polling", async () => {
-    const ctx = fakeContext()
+    const ctx = fakeContextWith({ data: [] })
     const cp = createRoot((_dispose) => {
       const c = createConnectedProviders(ctx, { pollMs: 1_000 })
       return c
@@ -112,7 +138,7 @@ describe("createConnectedProviders", () => {
   })
 
   test("no polling when pollMs is 0", async () => {
-    const ctx = fakeContext()
+    const ctx = fakeContextWith({ data: [] })
     const cp = createRoot((dispose) => {
       const c = createConnectedProviders(ctx, { pollMs: 0 })
       queueMicrotask(dispose)
@@ -126,7 +152,7 @@ describe("createConnectedProviders", () => {
   })
 
   test("defaults to a 30s poll interval", async () => {
-    const ctx = fakeContext()
+    const ctx = fakeContextWith({ data: [] })
     const cp = createRoot((_dispose) => {
       const c = createConnectedProviders(ctx, {})
       return c
@@ -137,3 +163,22 @@ describe("createConnectedProviders", () => {
     cp.stop()
   })
 })
+
+// ---------------------------------------------------------------------------
+// Fake context plumbing
+// ---------------------------------------------------------------------------
+
+import { fakeContext } from "../src/testkit.ts"
+
+/** Mutable list result so polling tests can flip it between polls. */
+let fakeListResult: { data: unknown[]; throws?: boolean }
+
+function fakeContextWith(opts: { data?: unknown[]; throws?: boolean }) {
+  fakeListResult = { data: opts.data ?? [], throws: opts.throws }
+  const ctx = fakeContext()
+  ctx.client.integration.list = vi.fn(() => {
+    if (fakeListResult.throws) return Promise.reject(new Error("no client"))
+    return Promise.resolve({ data: fakeListResult.data })
+  })
+  return ctx
+}

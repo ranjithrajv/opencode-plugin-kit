@@ -4,7 +4,9 @@
 import { readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
-import type { KitMessageShape } from "./host.ts"
+import { createSignal } from "solid-js"
+import { connectedProviderIds } from "./schemas.ts"
+import type { KitContext, KitMessageShape } from "./host.ts"
 
 export const ZEN_PROVIDER = "opencode"
 export const GO_PROVIDER = "opencode-go"
@@ -115,7 +117,8 @@ let _providers: string[] | null = null
  * All providers that have credentials in this workspace — read from
  * `~/.local/share/opencode/auth.json` (API keys) plus `HF_TOKEN` env
  * (HuggingFace). Result is memoized; at most one file read per process.
- * Falls back to Zen + Go if auth.json is unreadable.
+ * Falls back to Zen + Go if auth.json is unreadable. This is the sync
+ * core of provider discovery; reactive widgets use createConnectedProviders.
  */
 export function availableProviders(): string[] {
   if (_providers) return _providers
@@ -129,4 +132,69 @@ export function availableProviders(): string[] {
 
   _providers = ids
   return _providers
+}
+
+// ---------------------------------------------------------------------------
+// Reactive connected-provider tracking
+// ---------------------------------------------------------------------------
+
+export interface ConnectedProvidersOptions {
+  /** Polling interval in ms. Defaults to 30_000. Set to 0 to disable. */
+  readonly pollMs?: number
+}
+
+export interface ConnectedProviders {
+  /** Reactive set of connected provider ids. */
+  readonly ids: () => Set<string>
+  /** Whether a specific provider is connected. */
+  readonly has: (providerID: string) => boolean
+  /** Force an immediate refresh. */
+  readonly refresh: () => Promise<void>
+  /** Stop polling (call from cleanup). */
+  readonly stop: () => void
+}
+
+/**
+ * Track which providers are connected, reactively — for widgets that gate
+ * views on "is this provider connected?". Polls the integration list (the
+ * source /connect writes) and unions in env-only providers (HF_TOKEN).
+ * When the client is unavailable, falls back to the sync auth.json-based
+ * `availableProviders()` discovery.
+ */
+export function createConnectedProviders(
+  context: KitContext,
+  options: ConnectedProvidersOptions = {},
+): ConnectedProviders {
+  const [ids, setIds] = createSignal<Set<string>>(new Set())
+
+  async function refresh(): Promise<void> {
+    try {
+      const next = connectedProviderIds(await context.client.integration.list())
+      if (process.env.HF_TOKEN) next.add("huggingface")
+      setIds(next)
+    } catch {
+      setIds(new Set(availableProviders()))
+    }
+  }
+
+  // Initial refresh.
+  void refresh()
+
+  const pollMs = options.pollMs ?? 30_000
+  let timer: ReturnType<typeof setInterval> | null = null
+  if (pollMs > 0) {
+    timer = setInterval(() => void refresh(), pollMs)
+  }
+
+  return {
+    ids,
+    has: (providerID: string) => ids().has(providerID),
+    refresh,
+    stop: () => {
+      if (timer !== null) {
+        clearInterval(timer)
+        timer = null
+      }
+    },
+  }
 }

@@ -71,3 +71,25 @@ export function createCachedStore<T>(
     },
   }
 }
+
+/**
+ * Durable storage cell shared by the picker and the toggle: read the
+ * persisted object (or undefined when storage is unavailable) and persist
+ * by mutating it — the host hands back a live cell, so mutation = write.
+ */
+export function persistedCell<T extends object>(context: KitContext, storageKey: string, initial: T) {
+  const read = (): T | undefined => {
+    try {
+      return (context.storage.store(storageKey, { initial }) as [T, T])?.[0]
+    } catch {
+      return undefined
+    }
+  }
+  return {
+    read,
+    persist: (mutate: (value: T) => void): void => {
+      const value = read()
+      if (value) mutate(value)
+    },
+  }
+}
