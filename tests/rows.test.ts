@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { bar, line, short } from "./rows.ts"
+import { bar, line, short } from "../src/rows.ts"
 
 describe("short", () => {
   test("keeps short ids intact", () => {

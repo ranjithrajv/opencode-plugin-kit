@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
-import { showToast } from "./toast.ts"
-import { fakeContext } from "./testkit.ts"
+import { showToast } from "../src/toast.ts"
+import { fakeContext } from "../src/testkit.ts"
 
 describe("showToast", () => {
   test("shows a success toast by default", () => {

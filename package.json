@@ -1,6 +1,6 @@
 {
   "name": "opencode-plugin-kit",
-  "version": "0.1.0",
+  "version": "1.0.0-alpha.1",
   "description": "Shared building blocks for OpenCode sidebar plugins: provider vocabulary, row formatting, defensive message traversal, connected-provider tracking, polling fetcher, cached resources, and a persisted view/filter picker (registry + slash command + dialog + toast).",
   "keywords": [
     "opencode",
@@ -8,7 +8,7 @@
     "sidebar",
     "tui"
   ],
-  "license": "AGPL-3.0",
+  "license": "MIT",
   "author": "Ranjith Raj",
   "files": [
     "src"

@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest"
-import { createToggle, registerKeymapCommand } from "./commands.ts"
-import { fakeContext, fakeStorage, type FakeCell } from "./testkit.ts"
+import { createToggle, registerKeymapCommand } from "../src/commands.ts"
+import { fakeContext, fakeStorage, type FakeCell } from "../src/testkit.ts"
 
 describe("registerKeymapCommand", () => {
   test("registers through an app slot keymap layer", () => {

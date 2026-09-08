@@ -20,8 +20,9 @@ export interface WalkOptions {
 /**
  * Fold over a session's messages defensively. Starts from the most recent
  * message and walks backwards. The reducer receives each message (already
-// unwrapped from `{ info: ... }` envelope). Stops early if the predicate
- * returns false. Never throws — unreadable shapes are skipped.
+ * unwrapped from `{ info: ... }` envelope). Returning a value replaces the
+ * accumulator; returning void keeps it. Never throws — unreadable shapes
+ * are skipped.
  *
  * @example
  * // Sum input tokens for the "opencode" provider in the last hour.

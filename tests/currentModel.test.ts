@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
-import { createCurrentModelResolver, resolveCurrentModel } from "./currentModel.ts"
-import { fakeContext } from "./testkit.ts"
-import type { KitMessageShape } from "./host.ts"
+import { resolveCurrentModel } from "../src/currentModel.ts"
+import { fakeContext } from "../src/testkit.ts"
+import type { KitMessageShape } from "../src/host.ts"
 
 const push = (ctx: ReturnType<typeof fakeContext>, ...m: KitMessageShape[]) => ctx.messages.push(...m)
 
@@ -76,23 +76,5 @@ describe("resolveCurrentModel", () => {
       throw new Error("boom")
     }
     expect(resolveCurrentModel(ctx, "s")).toBeUndefined()
-  })
-})
-
-describe("createCurrentModelResolver", () => {
-  test("re-resolves with the current sessionID on each call", () => {
-    const ctx = fakeContext()
-    push(ctx, { type: "assistant", providerID: "a", modelID: "m1" })
-    let sid: string | undefined = "s1"
-    const resolve = createCurrentModelResolver(ctx, () => sid)
-    expect(resolve()).toEqual({ providerID: "a", modelID: "m1" })
-
-    ctx.messages.length = 0
-    push(ctx, { type: "assistant", providerID: "b", modelID: "m2" })
-    sid = "s2"
-    expect(resolve()).toEqual({ providerID: "b", modelID: "m2" })
-
-    sid = undefined
-    expect(resolve()).toBeUndefined()
   })
 })

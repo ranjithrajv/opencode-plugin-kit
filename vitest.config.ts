@@ -8,14 +8,14 @@ export default defineConfig({
     conditions: ["browser", "development"],
   },
   test: {
-    include: ["src/**/*.test.ts"],
+    include: ["tests/**/*.test.ts"],
     typecheck: {
-      include: ["src/**/*.test-d.ts"],
+      include: ["tests/**/*.test-d.ts"],
     },
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],
-      exclude: ["src/**/*.test*.ts", "src/testkit.ts", "src/index.ts", "src/host.ts"],
+      exclude: ["src/testkit.ts", "src/index.ts", "src/host.ts"],
       thresholds: {
         lines: 100,
         functions: 100,

@@ -20,11 +20,11 @@ vi.mock("node:fs", async (importOriginal) => {
   }
 })
 
-type Providers = typeof import("./providers.ts")
+type Providers = typeof import("../src/providers.ts")
 
 async function fresh(): Promise<Providers> {
   vi.resetModules()
-  return import("./providers.ts")
+  return import("../src/providers.ts")
 }
 
 beforeEach(() => {

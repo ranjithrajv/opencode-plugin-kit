@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
-import { createPollingFetcher } from "./pollingFetcher.ts"
+import { createPollingFetcher } from "../src/pollingFetcher.ts"
 
 beforeEach(() => {
   vi.useFakeTimers()

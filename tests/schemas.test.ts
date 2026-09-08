@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { connectedProviderIds, parseUsage, parseIntegrationList, usageResponseSchema } from "./schemas.ts"
+import { connectedProviderIds, parseUsage, parseIntegrationList, usageResponseSchema } from "../src/schemas.ts"
 
 describe("parseUsage", () => {
   test("parses a full usage payload", () => {

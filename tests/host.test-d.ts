@@ -27,8 +27,8 @@ import {
   type KitStorage,
   type SelectOption,
   type ToastInput,
-} from "./index.ts"
-import type { PickerConfig, PickerOption, ViewPicker } from "./viewPicker.ts"
+} from "../src/index.ts"
+import type { PickerConfig, PickerOption, ViewPicker } from "../src/viewPicker.ts"
 
 // ---------------------------------------------------------------------------
 // Host → kit input compatibility (the shapes kit populates are host-shaped)

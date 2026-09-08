@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { fmt, fmtCost, until } from "./format.ts"
+import { fmt, fmtCost, until } from "../src/format.ts"
 
 describe("fmt", () => {
   test("formats finite numbers with locale grouping", () => {

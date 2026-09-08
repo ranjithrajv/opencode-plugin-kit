@@ -1,32 +1,31 @@
 # opencode-plugin-kit
 
+[![CI](https://github.com/ranjithraj/opencode-plugin-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/ranjithraj/opencode-plugin-kit/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/opencode-plugin-kit)](https://www.npmjs.com/package/opencode-plugin-kit)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Shared building blocks for [OpenCode](https://opencode.ai) sidebar plugins —
-the pieces that every sidebar widget ends up reimplementing:
+the pieces that every sidebar widget ends up reimplementing. Used by five
+production plugins with **100% test coverage**.
 
-- **Provider vocabulary** (`providers.ts`) — Zen/Go provider ids, human
-  labels, connected-provider discovery (from auth.json, with fallbacks), and
-  defensive shape helpers for beta-API message/model objects.
-- **Row formatting** (`rows.ts`) — `short()` id truncation, padded
-  `label id (provider) value` lines, and the lean `[━━──]` progress bar.
-- **Number/date formatting** (`format.ts`) — `fmt()` locale integers,
-  `fmtCost()` dollar amounts, and `until()` compact reset countdowns.
-- **View picker** (`viewPicker.ts`) — the full "switch which view the widget
-  shows" pattern: a registry, durable selection via plugin storage, a
-  slash/palette command (registered through a keymap layer in an `app` slot,
-  the only way it activates), a `dialog.select` picker, and a toast.
+## Status
 
-Used by [opencode-usage-quota-tracker](../opencode-usage-quota-tracker) and
-[opencode-model-recommender](../opencode-model-recommender).
+**v1.0.0-alpha.1** — API stabilized, ready for integration testing.
 
-## Usage
+## Quick Start
 
 ```sh
-npm i opencode-plugin-kit   # or: bun add / file:../opencode-plugin-kit
+# npm
+npm install opencode-plugin-kit
+
+# bun
+bun add opencode-plugin-kit
 ```
 
 ```ts
-import { createViewPicker } from "opencode-plugin-kit"
+import { createViewPicker, createCachedStore } from "opencode-plugin-kit"
 
+// Persisted view picker with slash command + dialog
 const picker = createViewPicker(context, {
   registry: [
     { id: "go", title: "Go", description: "Go plan usage" },
@@ -43,77 +42,204 @@ const picker = createViewPicker(context, {
   dialog: { title: "Usage view", message: "Choose the provider view" },
   toastPrefix: "Usage footer",
 })
-
 picker.registerCommand()
+
+// Storage-backed cache (instant restore after TUI restart)
+const cache = createCachedStore<Usage | null>(context, "usage", {
+  initial: null,
+  staleAfterMs: 120_000,
+})
 ```
 
-`current()` is reactive (Solid signal); the registry is the single extension
-point — adding a view is one entry, and the picker, command, persistence, and
-renderer all derive from it.
+## Why
+
+Every OpenCode sidebar plugin reimplements the same patterns:
+
+- Reading provider lists and auth.json
+- Persisting UI state across TUI restarts
+- Switching views with slash commands + dialogs
+- Polling authenticated endpoints
+- Traversing session messages defensively
+
+Kit extracts these into tested, documented primitives so plugins focus on
+their unique data and rendering.
 
 ## Modules
 
-| Module                  | Exports                                                                                                                                                                                                  | Notes                                                                                                                      |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `providers.ts`          | `ZEN_PROVIDER`, `GO_PROVIDER`, `DEFAULT_PROVIDERS`, `providerLabel()`, `unwrap()`, `asArray()`, `modelId()`, `providerId()`, `readAuth()`, `authKey()`, `hasKey()`, `authKeys()`, `availableProviders()` | Beta-API shapes read defensively; never throw on unexpected payloads. auth.json is parsed in exactly one place             |
-| `rows.ts`               | `short()`, `line()`, `bar()`                                                                                                                                                                             | Pure text, no I/O                                                                                                          |
-| `format.ts`             | `fmt()`, `fmtCost()`, `until()`                                                                                                                                                                          | Pure text, no I/O                                                                                                          |
-| `cache.ts`              | `createCachedStore()`                                                                                                                                                                                    | Storage-backed cache with instant restore after TUI restarts and staleness tracking                                        |
-| `schemas.ts`            | `windowSchema`, `usageResponseSchema`, `integrationSchema`, `parseUsage()`, `parseIntegrationList()`, `connectedProviderIds()`                                                                           | Zod schemas for untrusted boundary shapes; parse functions return `null` on mismatch so callers degrade to last-known-good |
-| `viewPicker.ts`         | `PickerOption`, `PickerConfig`, `createViewPicker()`                                                                                                                                                     | See usage above; `selectable` gates views (e.g. connected-provider checks)                                                 |
-| `currentModel.ts`       | `resolveCurrentModel()`, `createCurrentModelResolver()`                                                                                                                                                  | Resolve the model a session is actually using from its last assistant message                                              |
-| `connectedProviders.ts` | `createConnectedProviders()`                                                                                                                                                                             | Reactive connected-providers tracker: polls integration list with auth.json + env-var fallbacks                            |
-| `cachedResource.ts`     | `createCachedResource()`                                                                                                                                                                                 | Stale-while-revalidate resource: combines `createResource` + `createCachedStore` into one primitive                        |
-| `messages.ts`           | `walkMessages()`, `sumProviderTokens()`, `cacheReadInput()`                                                                                                                                              | Defensive message traversal: fold over a session's messages with provider/time-window scoping                              |
-| `pollingFetcher.ts`     | `createPollingFetcher()`                                                                                                                                                                                 | Polling fetcher with throttling, in-flight guard, and last-known-good retention                                            |
-| `sidebarSlot.ts`        | `createSessionResource()`                                                                                                                                                                                | Session-reactive data resource for sidebar slots                                                                           |
-| `host.ts`               | `KitContext`, `KitMessageShape`, `ToastInput`, `SelectOption`                                                                                                                                            | Structural minimum types for the host context kit consumes                                                                 |
+| Module                  | Exports                                                                                                                                                                    | Purpose                                                 |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `providers.ts`          | `ZEN_PROVIDER`, `GO_PROVIDER`, `providerLabel()`, `availableProviders()`, `unwrap()`, `isAssistant()`, `modelId()`, `providerId()`, `readAuth()`, `hasKey()`, `authKeys()` | Provider vocabulary + defensive shape readers           |
+| `rows.ts`               | `short()`, `line()`, `bar()`                                                                                                                                               | Pure text formatting                                    |
+| `format.ts`             | `fmt()`, `fmtCost()`, `until()`                                                                                                                                            | Number/date formatting                                  |
+| `cache.ts`              | `createCachedStore<T>()`                                                                                                                                                   | Storage-backed cache with staleness tracking            |
+| `schemas.ts`            | `parseUsage()`, `parseIntegrationList()`, `connectedProviderIds()`                                                                                                         | Zod schemas for untrusted boundary shapes               |
+| `viewPicker.ts`         | `createViewPicker()`                                                                                                                                                       | Registry + persistence + slash command + dialog + toast |
+| `currentModel.ts`       | `resolveCurrentModel()`                                                                                                                                                    | Resolve active model from session messages              |
+| `connectedProviders.ts` | `createConnectedProviders()`                                                                                                                                               | Reactive integration-list polling                       |
+| `cachedResource.ts`     | `createCachedResource()`                                                                                                                                                   | Stale-while-revalidate resource                         |
+| `messages.ts`           | `walkMessages()`, `sumProviderTokens()`                                                                                                                                    | Defensive message traversal                             |
+| `pollingFetcher.ts`     | `createPollingFetcher()`                                                                                                                                                   | Throttled polling with in-flight guard                  |
+| `sidebarSlot.ts`        | `createSessionResource()`                                                                                                                                                  | Session-reactive data resource                          |
+| `commands.ts`           | `createToggle()`, `registerKeymapCommand()`                                                                                                                                | Toggle command + keymap registration                    |
+| `workspace.ts`          | `resolveLocation()`, `workspaceDirectory()`                                                                                                                                | Workspace location resolution                           |
+| `toast.ts`              | `showToast()`                                                                                                                                                              | Toast helper                                            |
+| `host.ts`               | `KitContext`, `KitMessageShape`                                                                                                                                            | Structural host-contract types                          |
 
 Everything is re-exported from the package root (`src/index.ts`).
 
-## Compatibility with `@opencode-ai/plugin`
+## API Reference
 
-The host plugin API is beta; its types are the spec. Kit plays nice with it by
-consuming the context, never installing the SDK:
+### View Picker
 
-- **No runtime dependency.** Kit imports the host SDK only for types. Whatever
-  the host calls `setup()` with is passed into kit's factories untouched.
-- **Optional peer dependency.** `@opencode-ai/plugin` is declared as an
-  _optional_ peer (`>=1.18.25 <2 || 0.0.0-beta-19242`) so consumers share one
-  copy; the exact beta is pinned in kit's devDependencies for CI only. Never
-  depend on the moving `beta` tag.
-- **Structural minimum.** `KitContext` (in `src/host.ts`) declares only the
-  surfaces kit reads — storage, ui (toast/dialog/slot), keymap, session
-  messages, integration list. Anything the host ships with those members
-  satisfies it; extra host fields are ignored.
-- **Typed ambiguity.** Known beta drift (raw messages vs `{ info }`
-  envelopes, `tokens.cache.read` as number vs `{ input }`, `time.created` vs
-  `timeCreated`) is modeled as unions on `KitMessageShape` with shared
-  readers (`unwrap()`, `cacheReadInput()`), so a new host shape is one edit
-  in kit, not four plugins.
-- **CI tripwire.** `bun run test:types` runs `expectTypeOf` assertions
-  (`src/host.test-d.ts`) pinning the published host types
-  (`AssistantMessage`, `TuiToast`, `TuiDialogSelectOption`, `TuiCommand`)
-  against kit's contract. A host upgrade that drifts fails CI with a
-  readable diff instead of breaking users' sidebars at runtime.
+```ts
+import { createViewPicker } from "opencode-plugin-kit"
 
-## Consuming plugins
+const picker = createViewPicker(context, {
+  registry: readonly PickerOption[],  // View options
+  storageKey: string,                 // Persistence key
+  command: {
+    id: string,                       // Command ID
+    group: string,                    // Command group
+    name: string,                     // Slash command name
+    aliases?: string[],               // Slash aliases
+    title: (current) => string,       // Dynamic title
+    description: string,              // Command description
+  },
+  dialog: { title: string, message: string },
+  toastPrefix?: string,               // Toast prefix on switch
+  selectable?: (entry) => boolean,    // Gate entries (e.g. provider-key check)
+  unavailableMessage?: (entry) => string,
+})
+picker.registerCommand()  // Call once from setup
+picker.current()          // Reactive current entry
+picker.currentID()        // Reactive current ID
+picker.apply(entry)       // Switch without UI
+picker.pick(arg?)         // Open picker or select by arg
+```
 
-- [opencode-usage-quota-tracker](../opencode-usage-quota-tracker) — sidebar
-  footer with per-provider usage, plan quota, and the Zen free-tier breakdown
-- [opencode-model-recommender](../opencode-model-recommender) — model
-  recommendations by cache ratio, token cost, and session cost
+### Cached Store
 
-Link locally with `"opencode-plugin-kit": "file:../opencode-plugin-kit"` in
-the consumer's `package.json`, then `npm install` (or `bun install`).
+```ts
+import { createCachedStore } from "opencode-plugin-kit"
+
+const cache = createCachedStore<T>(context, key, {
+  initial: T, // Initial value
+  staleAfterMs: number, // Staleness threshold
+})
+cache.value // Current value (restored from storage)
+cache.lastSet // Epoch ms of last set (0 = never)
+cache.stale // True when staleAfterMs elapsed
+cache.set(value) // Update + persist
+```
+
+### Connected Providers
+
+```ts
+import { createConnectedProviders } from "opencode-plugin-kit"
+
+const connected = createConnectedProviders(context, {
+  extra: () => ["huggingface"], // Extra providers (e.g. env-only)
+  pollMs: 30_000, // Poll interval (0 = disable)
+})
+connected.ids() // Reactive Set of connected provider IDs
+connected.has(id) // Check if provider is connected
+connected.refresh() // Force immediate refresh
+connected.stop() // Stop polling
+```
+
+### Polling Fetcher
+
+```ts
+import { createPollingFetcher } from "opencode-plugin-kit"
+
+const fetcher = createPollingFetcher({
+  fetch: () => Promise<T | null>,
+  intervalMs: 60_000,
+  throttleMs: 60_000,     // Min gap between fetches
+  onResult: (value) => void,
+  onError: (err) => void,
+})
+fetcher.refresh()   // Trigger immediate fetch
+fetcher.stop()      // Stop polling
+fetcher.inFlight()  // Whether a fetch is in progress
+```
+
+### Message Traversal
+
+```ts
+import { walkMessages, sumProviderTokens } from "opencode-plugin-kit"
+
+// Fold over a session's messages defensively
+const totals = walkMessages(
+  context,
+  sessionID,
+  (message, acc) => {
+    acc.tokens += message?.tokens?.input ?? 0
+    return acc
+  },
+  { provider: "opencode", since: Date.now() - 3600_000 },
+  { tokens: 0 },
+)
+
+// Convenience: sum tokens for a provider
+const { input, output, cost } = sumProviderTokens(context, sessionID, "opencode")
+```
+
+## Consuming Plugins
+
+| Plugin                                                          | What it does                                                   |
+| --------------------------------------------------------------- | -------------------------------------------------------------- |
+| [opencode-usage-quota-tracker](../opencode-usage-quota-tracker) | Live provider quota + usage in sidebar footer                  |
+| [opencode-model-recommender](../opencode-model-recommender)     | Model recommendations by cache ratio, token cost, session cost |
+| [opencode-skill-lister](../opencode-skill-lister)               | Skills list in sidebar                                         |
+| [opencode-plugin-manager](../opencode-plugin-manager)           | Plugin manager in sidebar                                      |
+
+Link locally with `"opencode-plugin-kit": "file:../opencode-plugin-kit"` in the
+consumer's `package.json`, then `npm install` (or `bun install`).
+
+## Compatibility
+
+The host plugin API is beta; its types are the spec. Kit consumes the context
+structurally — anything the host ships with the expected members satisfies it.
+
+- **No runtime dependency** on `@opencode-ai/plugin` — types only
+- **Optional peer** — declared as optional so consumers share one copy
+- **CI tripwire** — `host.test-d.ts` pins published host types against kit's
+  contract; drift fails CI with a readable diff
+
+## Development
+
+```sh
+# Install
+vp install
+
+# Check (format + lint + typecheck)
+vp check
+
+# Fix issues
+vp check --fix
+
+# Format
+vp fmt
+
+# Lint
+vp lint
+
+# Typecheck
+vp check --typecheck
+
+# Test
+vp test
+
+# Test with coverage
+vp test --coverage
+```
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) — and keep
 [docs/opencode2-api.md](docs/opencode2-api.md) in sync if your change adopts
-a new OpenCode API surface. For the OpenCode V2 API surfaces the
-kit builds on — service endpoints, the injected plugin context, and debugging
-recipes — see [docs/opencode2-api.md](docs/opencode2-api.md).
+a new OpenCode API surface.
 
 Platform patterns proposed for upstreaming into the official plugin API are
 tracked in [docs/UPSTREAM.md](docs/UPSTREAM.md) — absorbing a pattern
@@ -121,4 +247,4 @@ upstream and deleting it here is the project's exit goal, not a failure.
 
 ## License
 
-GNU Affero General Public License v3.0 — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

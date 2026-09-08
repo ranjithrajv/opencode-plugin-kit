@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { resolveLocation, workspaceDirectory } from "./workspace.ts"
+import { resolveLocation, workspaceDirectory } from "../src/workspace.ts"
 
 describe("resolveLocation", () => {
   test("prefers context.location", () => {

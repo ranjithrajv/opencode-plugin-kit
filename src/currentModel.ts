@@ -1,9 +1,8 @@
 // Resolves the model a session is actually using from its last assistant
-// message. Duplicated across the usage-quota tracker and model recommender —
-// both walk session messages backwards defensively to find the active provider
-// and model IDs.
-import { isAssistant } from "./providers.ts"
-import type { KitContext, KitMessageShape } from "./host.ts"
+// message. Both the usage-quota tracker and model recommender need this;
+// the defensive walk is delegated to the kit's shared walker.
+import { walkMessages } from "./messages.ts"
+import type { KitContext } from "./host.ts"
 
 export interface CurrentModel {
   providerID: string
@@ -11,36 +10,23 @@ export interface CurrentModel {
 }
 
 /**
- * Resolve the current model from a session's last assistant message.
- * Walks messages backwards so the first assistant hit is the active one.
+ * Resolve the current model from a session's most recent assistant message.
  * Returns undefined when the session has no assistant messages or the
  * shape is unreadable — callers fall back to the workspace default.
  */
 export function resolveCurrentModel(context: KitContext, sessionID?: string): CurrentModel | undefined {
-  if (!sessionID) return undefined
-  try {
-    const messages = context.data.session.message.list(sessionID) ?? []
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const m = (messages[i] as KitMessageShape)?.info ?? (messages[i] as KitMessageShape)
-      if (!isAssistant(m)) continue
+  let found: CurrentModel | undefined
+  walkMessages(
+    context,
+    sessionID,
+    (m) => {
+      if (found) return
       const providerID = String(m?.model?.providerID ?? m?.providerID ?? "")
       const modelID = String(m?.model?.id ?? m?.modelID ?? m?.id ?? "")
-      if (providerID && modelID) return { providerID, modelID }
-    }
-  } catch {
-    // Fall through.
-  }
-  return undefined
-}
-
-/**
- * Create a reactive current-model resolver. Re-reads whenever `sessionID`
- * changes (via the signal you pass), so the sidebar follows the active
- * session without manual refresh.
- */
-export function createCurrentModelResolver(
-  context: KitContext,
-  sessionID: () => string | undefined,
-): () => CurrentModel | undefined {
-  return () => resolveCurrentModel(context, sessionID())
+      if (providerID && modelID) found = { providerID, modelID }
+    },
+    {},
+    undefined,
+  )
+  return found
 }

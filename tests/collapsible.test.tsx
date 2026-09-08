@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest"
 import { render } from "solid-js/web"
 import { PluginContextProvider } from "@opencode-ai/plugin/tui"
 import { createRoot } from "solid-js"
-import { CollapsibleGroup, CollapsibleSection } from "./collapsible.tsx"
+import { CollapsibleGroup, CollapsibleSection } from "../src/collapsible.tsx"
 
 /** Render inside the plugin context provider (usePlugin needs it) and
  * return the container plus a click helper for the header. */

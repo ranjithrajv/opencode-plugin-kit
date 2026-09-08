@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
-import { createCachedStore } from "./cache.ts"
-import { fakeContext, fakeStorage } from "./testkit.ts"
+import { createCachedStore } from "../src/cache.ts"
+import { fakeContext, fakeStorage } from "../src/testkit.ts"
 
 beforeEach(() => {
   vi.useFakeTimers()

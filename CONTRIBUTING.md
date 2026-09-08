@@ -8,10 +8,10 @@ surface is documented in [README.md](README.md).
 The kit exists to stop every OpenCode sidebar plugin from reimplementing the
 same pieces. Add a module only if **two or more plugins need it**:
 
-✅ Good fits — provider-id vocabulary, beta-API shape helpers, row/text
+Good fits — provider-id vocabulary, beta-API shape helpers, row/text
 formatting, the view-picker pattern, connection/auth discovery helpers.
 
-❌ Poor fits — plugin-specific business logic (quota math, recommendation
+Poor fits — plugin-specific business logic (quota math, recommendation
 ranking, free-tier estimation), slot/renderer wiring that differs per plugin,
 anything that needs plugin storage keys other than via a config option.
 
@@ -19,9 +19,9 @@ When in doubt, keep it out until a second consumer needs it.
 
 ## Ground rules
 
-- **License**: AGPL-3.0. New files start with the project's standard header
+- **License**: MIT. New files start with the project's standard header
   or a one-line SPDX comment; by contributing you agree your work is
-  distributed under AGPL-3.0.
+  distributed under MIT.
 - **No build step.** The package ships TypeScript source (`exports` point at
   `.ts` files); consumers compile it with their own `tsc`. Do not add a
   bundler or emit `dist/`.
@@ -34,43 +34,50 @@ When in doubt, keep it out until a second consumer needs it.
   context-taking module (like `viewPicker.ts`) or in the consuming plugin.
 - **No new runtime dependencies.** Runtime deps are peer-only (`solid-js`,
   `@opentui/*`, `@opencode-ai/plugin` per the consumers' own setup) plus
-  `zod` — allowed only in `schemas.ts` for boundary-shape parsing. Dev
-  deps: `typescript`, `@types/node`, `prettier`, `lint-staged`, `husky`.
+  `zod` — allowed only in `schemas.ts` for boundary-shape parsing.
+- **100% test coverage.** All new code must include tests that maintain 100%
+  line, branch, function, and statement coverage.
 
 ## Development loop
 
 ```sh
-bun install            # or: npm install
-bun run typecheck      # tsc --noEmit — must pass with zero errors
-npx prettier --write . # formatting is enforced via lint-staged on commit
+vp install            # install dependencies
+vp check              # format + lint + typecheck
+vp check --fix        # auto-fix issues
+vp fmt                # format code
+vp lint               # lint code
+vp test               # run tests
+vp test --coverage    # run tests with coverage
 ```
 
-Pre-commit (husky + lint-staged) runs Prettier on staged files. Commits must
-pass typecheck before push; keep `tsc --noEmit` clean at every commit.
+Pre-commit hooks run `vp staged` (format + lint + typecheck on staged files).
+Commits must pass CI before push.
 
 Commits follow Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`,
 `chore:`). Bump the version in `package.json` and add a `CHANGELOG.md` entry
+using [CHANGELOG_TEMPLATE.md](CHANGELOG_TEMPLATE.md) — bullets grouped into
+the semantic categories (Added / Changed / Fixed …) that map 1:1 from
+Conventional Commit types.
 for anything user-visible.
 
 ## Testing changes against consumers
 
-There is no unit test suite; the two consumers are the tests. Link locally
-and verify both:
+Link locally and verify all consumers:
 
 ```sh
-# in the consumer package
-bun add ../opencode-plugin-kit        # or npm i file:../opencode-plugin-kit
-bun run typecheck
+# in each consumer package
+vp install
+vp check
+vp test
 ```
 
 Then restart the TUI (`opencode2 service restart`, then relaunch `opencode2`)
-and exercise the affected feature: `/usage-view` and `/model-view` for the
-picker, sidebar footers for row/format changes.
+and exercise the affected feature.
 
 Check the server log for regressions:
 
 ```sh
-grep -h "failed to load plugin\|usage-quota-tracker\|model-recommender" \
+grep -h "failed to load plugin\|opencode-plugin-kit" \
   ~/.local/share/opencode/log/opencode.log | tail -20
 ```
 
@@ -79,10 +86,7 @@ grep -h "failed to load plugin\|usage-quota-tracker\|model-recommender" \
 1. Create `src/<module>.ts` with a one-line purpose comment at the top.
 2. Export it from `src/index.ts`.
 3. Document it in the README's module table.
-4. If it's a second pattern (like the picker), give it the same ergonomics:
-   config-object entry point, registry as the single extension point, and a
-   documented gotcha where relevant (e.g. keymap layers must register from a
-   rendered `app` slot — a plain `setup()` registration silently no-ops).
+4. Add tests in `src/<module>.test.ts` that maintain 100% coverage.
 5. Refactor at least one consumer to use it in the same PR — a kit module
    with no consumer is dead code.
 

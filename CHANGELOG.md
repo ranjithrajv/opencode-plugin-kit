@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-alpha.1] - 2026-09-08
+
+### Changed
+
+- **License changed from AGPL-3.0 to MIT**
+
 ### Added
 
 - Shared provider vocabulary (`providers.ts`) — Zen/Go provider ids, labels, discovery
@@ -21,10 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message traversal (`messages.ts`) — `walkMessages()`, `sumProviderTokens()`
 - Polling fetcher (`pollingFetcher.ts`) — `createPollingFetcher()`
 - Session resource (`sidebarSlot.ts`) — `createSessionResource()`
+- Toggle command (`commands.ts`) — `createToggle()`, `registerKeymapCommand()`
+- Workspace location (`workspace.ts`) — `resolveLocation()`, `workspaceDirectory()`
+- Toast helpers (`toast.ts`) — `showToast()`
 - Structural host types (`host.ts`) — `KitContext`, `KitMessageShape`
-- 156 tests across 12 test files
+- 147 tests across 13 test files with 100% coverage
 - Vite+ developer tooling (format, lint, typecheck)
 - GitHub Actions CI
 - Pre-commit hooks via `vp staged`
 
-[Unreleased]: https://github.com/ranjithraj/opencode-plugin-kit/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ranjithraj/opencode-plugin-kit/compare/v1.0.0-alpha.1...HEAD
+[1.0.0-alpha.1]: https://github.com/ranjithraj/opencode-plugin-kit/releases/tag/v1.0.0-alpha.1

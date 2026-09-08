@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { createRoot } from "solid-js"
-import { createConnectedProviders } from "./connectedProviders.ts"
+import { createConnectedProviders } from "../src/connectedProviders.ts"
 
-vi.mock("./providers.ts", () => ({
+vi.mock("../src/providers.ts", () => ({
   hasKey: (id: string) => id === "known-key",
 }))
-import { fakeContext } from "./testkit.ts"
+import { fakeContext } from "../src/testkit.ts"
 
 beforeEach(() => {
   vi.useFakeTimers()
