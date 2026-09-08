@@ -1,0 +1,57 @@
+name: SDK canary
+
+on:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Probe new @opencode-ai/plugin beta against published kit
+        id: probe
+        run: |
+          set -e
+          VER=$(npm view @opencode-ai/plugin dist-tags.beta)
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Testing opencode-plugin-kit against @opencode-ai/plugin@$VER"
+          mkdir -p /tmp/canary && cd /tmp/canary
+          npm init -y > /dev/null
+          npm install --no-save --legacy-peer-deps "@opencode-ai/plugin@$VER" opencode-plugin-kit@alpha
+          bun -e "import('opencode-plugin-kit').then(m => { if (Object.keys(m).length < 10) throw new Error('kit exports missing') })"
+          echo "canary green"
+
+      - name: Open pin-bump PR
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SDK_VERSION: ${{ steps.probe.outputs.version }}
+        run: |
+          VER="$SDK_VERSION"
+          BR="canary/sdk-bump-$VER"
+          git config user.name "sdk-canary-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git checkout -b "$BR"
+          python3 -c "
+import json, os
+p = 'package.json'
+pkg = json.load(open(p))
+pkg['peerDependencies']['@opencode-ai/plugin'] = os.environ['SDK_VERSION']
+pkg['version'] = pkg['version'].replace('-alpha.' + pkg['version'].split('alpha.')[1], 'alpha.' + str(int(pkg['version'].split('alpha.')[1]) + 1))
+json.dump(pkg, open(p, 'w'), indent=2)
+open(p, 'a').write('\n')
+"
+          git commit -am "chore: bump @opencode-ai/plugin peer pin to $VER (canary green)" || exit 0
+          git push -u origin "$BR" 2>&1 | tail -1
+          gh pr create --title "chore: bump @opencode-ai/plugin peer pin to $VER" --body "Nightly SDK canary passed: the published kit imports cleanly against @opencode-ai/plugin@$VER. Merge, then publish the bumped alpha." || true
