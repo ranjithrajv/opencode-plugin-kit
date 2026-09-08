@@ -28,7 +28,7 @@ jobs:
           echo "Testing against @opencode-ai/plugin@$VER"
           mkdir -p /tmp/canary && cd /tmp/canary
           npm init -y > /dev/null
-          npm install --no-save --legacy-peer-deps "@opencode-ai/plugin@$VER" "opencode-plugin-kit@alpha"
+          npm install --no-save --legacy-peer-deps "@opencode-ai/plugin@$VER" solid-js@1.9.15 zod@^4 "opencode-plugin-kit@alpha"
           bun -e "import('opencode-plugin-kit').then(m => { if (Object.keys(m).length < 10) throw new Error('kit exports missing') })"
           echo "canary green"
 
