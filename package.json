@@ -1,6 +1,6 @@
 {
   "name": "opencode-plugin-kit",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "description": "Shared building blocks for OpenCode sidebar plugins: provider vocabulary, row formatting, defensive message traversal, connected-provider tracking, polling fetcher, cached resources, and a persisted view/filter picker (registry + slash command + dialog + toast).",
   "keywords": [
     "opencode",

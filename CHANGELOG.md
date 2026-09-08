@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-alpha.5] - 2026-09-08
+
+### Fixed
+
+- `collapsible.tsx` now carries a file-level `/** @jsxImportSource @opentui/solid */` pragma. alpha.2 relied on the shipped `tsconfig.json`, but Bun ignores `tsconfig.json` inside `node_modules` — so OpenCode's TUI plugin loader transpiled the file with React's JSX runtime and consumers failed with `Cannot find package 'react'` (e.g. `opencode-plugin-manager`'s sidebar). Matches the documented pattern in opencode's `specs/tui-plugins.md`.
+
+### Added
+
+- Regression test asserting every `src/*.tsx` has the pragma and that Bun can import each one at runtime.
+
 ## [1.0.0-alpha.2] - 2026-09-08
 
 ### Added
