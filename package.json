@@ -1,6 +1,6 @@
 {
   "name": "opencode-plugin-kit",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.3",
   "description": "Shared building blocks for OpenCode sidebar plugins: provider vocabulary, row formatting, defensive message traversal, connected-provider tracking, polling fetcher, cached resources, and a persisted view/filter picker (registry + slash command + dialog + toast).",
   "keywords": [
     "opencode",
@@ -15,11 +15,16 @@
     "url": "git+https://github.com/ranjithraj/opencode-plugin-kit.git"
   },
   "files": [
-    "src"
+    "src",
+    "tsconfig.json"
   ],
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./collapsible": {
+      "types": "./src/collapsible.tsx",
+      "default": "./src/collapsible.tsx"
+    }
   },
   "scripts": {
     "check": "vp check",
