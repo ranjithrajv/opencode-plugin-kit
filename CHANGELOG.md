@@ -36,5 +36,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI
 - Pre-commit hooks via `vp staged`
 
-[Unreleased]: https://github.com/ranjithraj/opencode-plugin-kit/compare/v1.0.0-alpha.1...HEAD
-[1.0.0-alpha.1]: https://github.com/ranjithraj/opencode-plugin-kit/releases/tag/v1.0.0-alpha.1
+[Unreleased]: https://github.com/ranjithrajv/opencode-plugin-kit/compare/v1.0.0-alpha.1...HEAD
+[1.0.0-alpha.1]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.1

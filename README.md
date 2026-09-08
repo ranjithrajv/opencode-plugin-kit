@@ -1,6 +1,6 @@
 # opencode-plugin-kit
 
-[![CI](https://github.com/ranjithraj/opencode-plugin-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/ranjithraj/opencode-plugin-kit/actions/workflows/ci.yml)
+[![CI](https://github.com/ranjithrajv/opencode-plugin-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/ranjithrajv/opencode-plugin-kit/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/opencode-plugin-kit)](https://www.npmjs.com/package/opencode-plugin-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
