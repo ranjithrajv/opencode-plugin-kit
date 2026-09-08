@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { createRoot, untrack } from "solid-js"
 import { createViewPicker, type PickerConfig, type PickerOption } from "../src/viewPicker.ts"
-import { fakeContext, fakeStorage } from "../src/testkit.ts"
+import { fakeContext, fakeStorage } from "./testkit.ts"
 import type { KitContext } from "../src/index.ts"
 
 interface Option extends PickerOption {}

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest"
 import { createRoot } from "solid-js"
 import { createCachedResource } from "../src/cachedResource.ts"
 import { createCachedStore } from "../src/cache.ts"
-import { fakeContext } from "../src/testkit.ts"
+import { fakeContext } from "./testkit.ts"
 
 afterEach(() => {
   vi.useRealTimers()

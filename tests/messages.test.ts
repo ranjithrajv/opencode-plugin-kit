@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { cacheReadInput, sumProviderTokens, walkMessages } from "../src/messages.ts"
-import { fakeContext } from "../src/testkit.ts"
+import { fakeContext } from "./testkit.ts"
 import type { KitMessageShape } from "../src/host.ts"
 
 const assistant = (over: Partial<KitMessageShape> = {}): KitMessageShape => ({

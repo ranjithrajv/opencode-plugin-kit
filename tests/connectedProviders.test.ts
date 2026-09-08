@@ -168,7 +168,7 @@ describe("createConnectedProviders", () => {
 // Fake context plumbing
 // ---------------------------------------------------------------------------
 
-import { fakeContext } from "../src/testkit.ts"
+import { fakeContext } from "./testkit.ts"
 
 /** Mutable list result so polling tests can flip it between polls. */
 let fakeListResult: { data: unknown[]; throws?: boolean }

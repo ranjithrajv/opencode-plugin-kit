@@ -10,6 +10,10 @@
   ],
   "license": "MIT",
   "author": "Ranjith Raj",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ranjithraj/opencode-plugin-kit.git"
+  },
   "files": [
     "src"
   ],
@@ -22,7 +26,7 @@
     "check:fix": "vp check --fix",
     "fmt": "vp fmt",
     "lint": "vp lint",
-    "typecheck": "vp check --typecheck",
+    "typecheck": "tsc --noEmit",
     "test:types": "vitest run --typecheck",
     "test:coverage": "vitest run --coverage.enabled"
   },

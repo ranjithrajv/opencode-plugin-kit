@@ -1,4 +1,4 @@
-import type { KitContext } from "./host.ts"
+import type { KitContext } from "../src/host.ts"
 import { vi } from "vitest"
 
 /** A storage cell the fake KitStorage hands out (the unwrapped `[value, ref]` shape). */

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { resolveCurrentModel } from "../src/currentModel.ts"
-import { fakeContext } from "../src/testkit.ts"
+import { fakeContext } from "./testkit.ts"
 import type { KitMessageShape } from "../src/host.ts"
 
 const push = (ctx: ReturnType<typeof fakeContext>, ...m: KitMessageShape[]) => ctx.messages.push(...m)
