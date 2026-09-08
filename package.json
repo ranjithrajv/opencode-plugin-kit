@@ -12,7 +12,7 @@
   "author": "Ranjith Raj",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ranjithraj/opencode-plugin-kit.git"
+    "url": "git+https://github.com/ranjithrajv/opencode-plugin-kit.git"
   },
   "files": [
     "src",

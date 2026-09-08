@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Shared building blocks for [OpenCode](https://opencode.ai) sidebar plugins —
-the pieces that every sidebar widget ends up reimplementing. Used by five
+the pieces that every sidebar widget ends up reimplementing. Used by four
 production plugins with **100% test coverage**.
 
 ## Install
@@ -25,14 +25,6 @@ plugin's README).
 **v1.0.0-alpha.1** — API stabilized, ready for integration testing.
 
 ## Quick Start
-
-```sh
-# npm
-npm install opencode-plugin-kit
-
-# bun
-bun add opencode-plugin-kit
-```
 
 ```ts
 import { createViewPicker, createCachedStore } from "opencode-plugin-kit"
@@ -199,12 +191,12 @@ const { input, output, cost } = sumProviderTokens(context, sessionID, "opencode"
 
 ## Consuming Plugins
 
-| Plugin                                                          | What it does                                                   |
-| --------------------------------------------------------------- | -------------------------------------------------------------- |
-| [opencode-usage-quota-tracker](../opencode-usage-quota-tracker) | Live provider quota + usage in sidebar footer                  |
-| [opencode-model-recommender](../opencode-model-recommender)     | Model recommendations by cache ratio, token cost, session cost |
-| [opencode-skill-lister](../opencode-skill-lister)               | Skills list in sidebar                                         |
-| [opencode-plugin-manager](../opencode-plugin-manager)           | Plugin manager in sidebar                                      |
+| Plugin                                                                                      | What it does                                                   |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [opencode-usage-quota-tracker](https://github.com/ranjithrajv/opencode-usage-quota-tracker) | Live provider quota + usage in sidebar footer                  |
+| [opencode-model-recommender](https://github.com/ranjithrajv/opencode-model-recommender)     | Model recommendations by cache ratio, token cost, session cost |
+| [opencode-skill-lister](https://github.com/ranjithrajv/opencode-skill-lister)               | Skills list in sidebar                                         |
+| [opencode-plugin-manager](https://github.com/ranjithrajv/opencode-plugin-manager)           | Plugin manager in sidebar                                      |
 
 Link locally with `"opencode-plugin-kit": "file:../opencode-plugin-kit"` in the
 consumer's `package.json`, then `npm install` (or `bun install`).
