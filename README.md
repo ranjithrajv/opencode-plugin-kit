@@ -1,12 +1,24 @@
 # opencode-plugin-kit
 
 [![CI](https://github.com/ranjithrajv/opencode-plugin-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/ranjithrajv/opencode-plugin-kit/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/opencode-plugin-kit)](https://www.npmjs.com/package/opencode-plugin-kit)
+[![npm](https://img.shields.io/npm/v/opencode-plugin-kit)](https://www.npmjs.com/package/opencode-plugin-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Shared building blocks for [OpenCode](https://opencode.ai) sidebar plugins —
 the pieces that every sidebar widget ends up reimplementing. Used by five
 production plugins with **100% test coverage**.
+
+## Install
+
+Published on [npm](https://www.npmjs.com/package/opencode-plugin-kit):
+
+```sh
+npm install opencode-plugin-kit
+```
+
+Plugins depending on the kit declare it in `dependencies`; the SDK peer
+(`@opencode-ai/plugin`) must match your OpenCode runtime version (see each
+plugin's README).
 
 ## Status
 
