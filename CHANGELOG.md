@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-alpha.2] - 2026-09-08
+
+### Added
+
+- `./collapsible` subpath export (`CollapsibleSection`/`CollapsibleGroup`) — server entrypoints importing the main index no longer pull `.tsx` through their bundler
+- `tsconfig.json` now ships in the package so bun applies the `@opentui/solid` JSX runtime to raw `.tsx` consumed from `node_modules`
+
+### Fixed
+
+- alpha.1 tarball was stale: missing `collapsible.tsx`, `workspace.ts`, `toast.ts`, and the `commands.ts` module
+
 ## [1.0.0-alpha.1] - 2026-09-08
 
 ### Changed
