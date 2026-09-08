@@ -43,10 +43,13 @@
     "@types/node": "^26.5.0",
     "@vitest/coverage-v8": "^5.0.0",
     "happy-dom": "^20.14.0",
+    "solid-js": "1.9.15",
     "typescript": "^7.0.2",
+    "vite": "^7.0.0",
     "vite-plugin-solid": "^2.11.14",
     "vite-plus": "^0.1.16",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.0",
+    "zod": "^4.5.4"
   },
   "peerDependencies": {
     "@opencode-ai/plugin": ">=1.18.25 <2 || 0.0.0-beta-19242",
@@ -58,5 +61,5 @@
       "optional": true
     }
   },
-  "packageManager": "bun@1.4.2"
+  "packageManager": "npm@11.19.1"
 }
