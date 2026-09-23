@@ -5,15 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0-alpha.6] - 2026-09-23
 
 ### Changed
 
-- Aligned the remaining host-contract details with the V2 API: `dialog.select`
-  now sends `placeholder` (V2 dropped `message`), and `palette` /
-  `slash.arguments` are literal types matching `KeymapCommand`.
+- Migrated the host contract from the legacy V1 plugin beta to the OpenCode v2
+  packages `@opencode/plugin` / `@opencode/sdk` / `@opencode/theme` (`2.0.15`,
+  types-only optional peer): import paths, `ResolvedTheme` text tokens
+  (`text.base` / `text.muted`), and `dialog.select` `placeholder`.
+- `palette` / `slash.arguments` are literal types matching the v2 `KeymapCommand`.
 - Added `KitModelShape` so the model accessors accept both messages (numeric
   `cost`) and model-list entries / `ModelInfo` (array `cost`).
+- `readAuth()` now reads OpenCode 2's SQLite credential store, falling back to
+  the legacy `auth.json`.
 
 ### Fixed
 
@@ -23,16 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected `host.test-d.ts` (missing `KitStorage` import, a non-existent
   `expectTypeOf(...).get()`, and the command subset omitting required `run`).
 
-## [1.0.0-alpha.6]
+### Added
 
-### Changed
-
-- Migrated the host contract from the legacy V1 plugin beta to the OpenCode
-  v2 packages `@opencode/plugin` / `@opencode/sdk` / `@opencode/theme`
-  (`2.0.15`, types-only optional peer): import paths and the `ResolvedTheme`
-  text tokens (`text.base` / `text.muted`).
-- `readAuth()` now reads OpenCode 2's SQLite credential store, falling back to
-  the legacy `auth.json`.
+- Tests covering the OpenCode 2 SQLite credential store (restores the 100%
+  coverage gate).
 
 ## [1.0.0-alpha.5] - 2026-09-08
 
@@ -84,5 +82,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI
 - Pre-commit hooks via `vp staged`
 
-[Unreleased]: https://github.com/ranjithrajv/opencode-plugin-kit/compare/v1.0.0-alpha.1...HEAD
+[Unreleased]: https://github.com/ranjithrajv/opencode-plugin-kit/compare/v1.0.0-alpha.6...HEAD
+[1.0.0-alpha.6]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.6
 [1.0.0-alpha.1]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.1

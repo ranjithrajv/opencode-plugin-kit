@@ -22,7 +22,7 @@ plugin's README).
 
 ## Status
 
-**v1.0.0-alpha.1** — API stabilized, ready for integration testing.
+**v1.0.0-alpha.6** — API stabilized, ready for integration testing.
 
 ## Quick Start
 
