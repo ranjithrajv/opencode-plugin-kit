@@ -1,15 +1,21 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 
 const AUTH_PATH = "/tmp/opencode/fakehome/.local/share/opencode/auth.json"
+const DB_PATH = "/tmp/opencode/fakehome/.local/share/opencode/opencode.db"
 
 vi.mock("node:os", () => ({ homedir: () => "/tmp/opencode/fakehome" }))
 
-const fsState: { content: string; throws: boolean } = { content: "{}", throws: false }
+const fsState: { content: string; throws: boolean; dbExists: boolean } = {
+  content: "{}",
+  throws: false,
+  dbExists: false,
+}
 
 vi.mock("node:fs", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:fs")>()
   return {
     ...actual,
+    existsSync: (path: unknown) => (path === DB_PATH ? fsState.dbExists : actual.existsSync(path as string)),
     readFileSync: (path: unknown) => {
       if (path === AUTH_PATH) {
         if (fsState.throws) throw new Error("boom")
@@ -18,6 +24,36 @@ vi.mock("node:fs", async (importOriginal) => {
       throw new Error(`unexpected read: ${String(path)}`)
     },
   }
+})
+
+// providers.ts resolves the OpenCode 2 SQLite driver through createRequire
+// (bun:sqlite, then node:sqlite). Mocking node:module lets us exercise every
+// resolution branch — bun driver, node driver, no driver, missing constructor —
+// and both query APIs (query() vs prepare()) without a real driver.
+interface FakeDb {
+  query?: (sql: string) => { all: () => unknown[] }
+  prepare?: (sql: string) => { all: () => unknown[] }
+  close?: () => void
+}
+
+const sqliteState: { driver: "bun" | "node" | "none"; module: unknown } = { driver: "none", module: {} }
+
+vi.mock("node:module", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:module")>()
+  return {
+    ...actual,
+    createRequire: () => (name: string) => {
+      if (name === "bun:sqlite" && sqliteState.driver === "bun") return sqliteState.module
+      if (name === "node:sqlite" && sqliteState.driver === "node") return sqliteState.module
+      throw new Error(`no sqlite driver: ${name}`)
+    },
+  }
+})
+
+const dbModule = (name: "Database" | "DatabaseSync", make: () => FakeDb) => ({
+  [name]: function () {
+    return make()
+  },
 })
 
 type Providers = typeof import("../src/providers.ts")
@@ -30,6 +66,9 @@ async function fresh(): Promise<Providers> {
 beforeEach(() => {
   fsState.content = "{}"
   fsState.throws = false
+  fsState.dbExists = false
+  sqliteState.driver = "none"
+  sqliteState.module = {}
   delete process.env.HF_TOKEN
 })
 
@@ -197,5 +236,99 @@ describe("availableProviders", () => {
     const first = p.availableProviders()
     fsState.content = authJson({ google: { key: "g" } })
     expect(p.availableProviders()).toBe(first)
+  })
+})
+
+describe("SQLite credential store (OpenCode 2)", () => {
+  test("bun driver: parses the credential table and closes the db", async () => {
+    fsState.dbExists = true
+    sqliteState.driver = "bun"
+    let closed = false
+    sqliteState.module = dbModule("Database", () => ({
+      query: () => ({
+        all: () => [
+          { integration_id: " opencode ", value: JSON.stringify({ key: " zen-db " }) },
+          { integration_id: "", value: "{}" },
+          { integration_id: "bad", value: "not json" },
+          { integration_id: "nokey", value: JSON.stringify({ nope: 1 }) },
+          { integration_id: "nullval", value: "null" },
+          null,
+          { value: JSON.stringify({ key: "orphan" }) },
+        ],
+      }),
+      close: () => {
+        closed = true
+      },
+    }))
+    const p = await fresh()
+    expect(p.readAuth()).toEqual({ opencode: "zen-db" })
+    expect(closed).toBe(true)
+  })
+
+  test("node driver: falls back to prepare() and tolerates a missing close()", async () => {
+    fsState.content = authJson({ google: { key: "g" } })
+    fsState.dbExists = true
+    sqliteState.driver = "node"
+    sqliteState.module = dbModule("DatabaseSync", () => ({
+      prepare: () => ({ all: () => [{ integration_id: "opencode-go", value: JSON.stringify({ key: "go" }) }] }),
+    }))
+    const p = await fresh()
+    expect(p.readAuth()).toEqual({ google: "g", "opencode-go": "go" })
+  })
+
+  test("no driver: auth.json is the only source", async () => {
+    fsState.content = authJson({ opencode: { key: "zen" } })
+    fsState.dbExists = true
+    sqliteState.driver = "none"
+    const p = await fresh()
+    expect(p.readAuth()).toEqual({ opencode: "zen" })
+  })
+
+  test("bun module without the Database export", async () => {
+    fsState.dbExists = true
+    sqliteState.driver = "bun"
+    sqliteState.module = {}
+    const p = await fresh()
+    expect(p.readAuth()).toEqual({})
+  })
+
+  test("node module without the DatabaseSync export", async () => {
+    fsState.dbExists = true
+    sqliteState.driver = "node"
+    sqliteState.module = {}
+    const p = await fresh()
+    expect(p.readAuth()).toEqual({})
+  })
+
+  test("queryRows returns [] when neither query nor prepare works", async () => {
+    fsState.dbExists = true
+    sqliteState.driver = "bun"
+    sqliteState.module = dbModule("Database", () => ({}))
+    const p = await fresh()
+    expect(p.readAuth()).toEqual({})
+  })
+
+  test("db file absent: skips the store", async () => {
+    fsState.content = authJson({ opencode: { key: "zen" } })
+    fsState.dbExists = false
+    sqliteState.driver = "bun"
+    const p = await fresh()
+    expect(p.readAuth()).toEqual({ opencode: "zen" })
+  })
+
+  test("caches the db read within the TTL", async () => {
+    fsState.dbExists = true
+    sqliteState.driver = "bun"
+    let calls = 0
+    sqliteState.module = dbModule("Database", () => ({
+      query: () => {
+        calls++
+        return { all: () => [{ integration_id: "opencode", value: JSON.stringify({ key: "k" }) }] }
+      },
+    }))
+    const p = await fresh()
+    expect(p.readAuth()).toEqual({ opencode: "k" })
+    expect(p.readAuth()).toEqual({ opencode: "k" })
+    expect(calls).toBe(1)
   })
 })
