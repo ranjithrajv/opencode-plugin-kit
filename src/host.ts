@@ -1,6 +1,6 @@
 // Narrow host-contract types for opencode-plugin-kit.
 //
-// `@opencode-ai/plugin` is beta: its types ARE the spec. Kit consumes only a
+// `@opencode/plugin` is beta: its types ARE the spec. Kit consumes only a
 // small slice of the host context, so instead of accepting `any` everywhere
 // (which silently survives host upgrades and breaks at runtime), this module
 // defines the *structural minimum* kit needs and re-exports the exact host
@@ -77,7 +77,7 @@ export interface KitCommandEntry {
   readonly group: string
   readonly palette?: boolean
   readonly suggested?: boolean
-  readonly slash?: { name: string; aliases?: string[]; arguments?: boolean }
+  readonly slash?: { name: string; aliases?: string[]; arguments?: true }
   run: (input?: string) => void
 }
 

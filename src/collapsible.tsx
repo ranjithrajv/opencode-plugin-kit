@@ -12,7 +12,7 @@
 //    count, always toggleable.
 import { createSignal, Show } from "solid-js"
 import type { JSX } from "solid-js"
-import { usePlugin } from "@opencode-ai/plugin/tui"
+import { usePlugin } from "@opencode/plugin/tui"
 
 /** The top-level collapsible sidebar section. */
 export function CollapsibleSection(props: {
@@ -37,13 +37,13 @@ export function CollapsibleSection(props: {
     <box flexDirection="column">
       <box flexDirection="row" gap={1} onMouseDown={() => expandable() && setExpanded((e) => !e)}>
         <Show when={expandable()}>
-          <text fg={theme.text.default}>{expanded() ? "▼" : "▶"}</text>
+          <text fg={theme.text.base}>{expanded() ? "▼" : "▶"}</text>
         </Show>
-        <text fg={theme.text.default}>
+        <text fg={theme.text.base}>
           <b>{props.title}</b>
         </text>
         <Show when={!expanded()}>
-          <text fg={theme.text.subdued}> ({props.summary ?? count()})</text>
+          <text fg={theme.text.muted}> ({props.summary ?? count()})</text>
         </Show>
       </box>
       {props.pinned}
@@ -69,8 +69,8 @@ export function CollapsibleGroup(props: {
   return (
     <box flexDirection="column">
       <box flexDirection="row" gap={1} onMouseDown={() => setCollapsed((c) => !c)}>
-        <text fg={theme.text.subdued}>{collapsed() ? "▸" : "▾"}</text>
-        <text fg={theme.text.subdued}>
+        <text fg={theme.text.muted}>{collapsed() ? "▸" : "▾"}</text>
+        <text fg={theme.text.muted}>
           {props.title} ({props.count})
         </text>
       </box>

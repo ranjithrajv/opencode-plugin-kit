@@ -1,18 +1,18 @@
 // Type-level compatibility contract between opencode-plugin-kit and the
-// beta host API (`@opencode-ai/plugin` + `@opencode-ai/sdk`).
+// V2 host API (`@opencode/plugin` + `@opencode/client`).
 //
 // If the host's published types drift away from what kit consumes, these
 // `expectTypeOf` assertions fail CI — surfacing the breakage at typecheck
 // time instead of at runtime in a user's TUI.
 import { expectTypeOf, test } from "vitest"
-import type { AssistantMessage, Model } from "@opencode-ai/sdk/v2"
+import type { ModelInfo, SessionMessageAssistant } from "@opencode/client"
 import type {
-  TuiCommand,
-  TuiDialogSelectOption,
-  TuiDialogSelectProps,
-  TuiPluginApi,
-  TuiToast,
-} from "@opencode-ai/plugin/tui"
+  Context,
+  DialogSelectOption,
+  DialogSelectOptions,
+  KeymapCommand,
+  ToastOptions,
+} from "@opencode/plugin/tui/context"
 import {
   asArray,
   createViewPicker,
@@ -34,20 +34,20 @@ import type { PickerConfig, PickerOption, ViewPicker } from "../src/viewPicker.t
 // Host → kit input compatibility (the shapes kit populates are host-shaped)
 // ---------------------------------------------------------------------------
 
-test("toast payload matches the host TuiToast contract", () => {
-  expectTypeOf<TuiToast>().toExtend<ToastInput>()
+test("toast payload matches the host ToastOptions contract", () => {
+  expectTypeOf<ToastOptions>().toExtend<ToastInput>()
 })
 
 test("picker options match the host dialog select option contract", () => {
-  expectTypeOf<SelectOption<string>>().toExtend<TuiDialogSelectOption<string>>()
-  expectTypeOf<Pick<TuiDialogSelectProps<string>, "title" | "options">>().toExtend<{
+  expectTypeOf<SelectOption<string>>().toExtend<DialogSelectOption<string>>()
+  expectTypeOf<Pick<DialogSelectOptions<string>, "title" | "options">>().toExtend<{
     title: string
     options: readonly SelectOption[]
   }>()
 })
 
 test("the picker's command fields are a structural subset of the host command shape", () => {
-  expectTypeOf<Pick<KitCommandEntry, "title" | "description" | "suggested" | "slash">>().toExtend<TuiCommand>()
+  expectTypeOf<Pick<KitCommandEntry, "title" | "description" | "suggested" | "slash">>().toExtend<KeymapCommand>()
 })
 
 test("kit storage satisfies the structural minimum consumers rely on", () => {
@@ -60,19 +60,20 @@ test("kit storage satisfies the structural minimum consumers rely on", () => {
 
 // ---------------------------------------------------------------------------
 // Host message/model shapes satisfy kit's defensive readers
-// (AssistantMessage / Model are the beta spec; drift breaks here, not runtime)
+// (SessionMessageAssistant / ModelInfo are the V2 spec; drift breaks here,
+// not at runtime)
 // ---------------------------------------------------------------------------
 
-test("host AssistantMessage satisfies kit's message shape", () => {
-  expectTypeOf<AssistantMessage>().toExtend<KitMessageShape>()
-  const m = expectTypeOf({} as AssistantMessage)
+test("host assistant message satisfies kit's message shape", () => {
+  expectTypeOf<SessionMessageAssistant>().toExtend<KitMessageShape>()
+  const m = expectTypeOf({} as SessionMessageAssistant)
   expectTypeOf(providerId(m.get())).toEqualTypeOf<string>()
   expectTypeOf(modelId(m.get())).toEqualTypeOf<string>()
   expectTypeOf(isAssistant(m.get())).toEqualTypeOf<boolean>()
 })
 
-test("host Model list objects resolve through kit's model accessors", () => {
-  const m = expectTypeOf({} as Model)
+test("host ModelInfo resolves through kit's model accessors", () => {
+  const m = expectTypeOf({} as ModelInfo)
   expectTypeOf(modelId(m.get())).toEqualTypeOf<string>()
   expectTypeOf(providerId(m.get())).toEqualTypeOf<string>()
   expectTypeOf(modelName(m.get())).toEqualTypeOf<string>()
@@ -102,11 +103,11 @@ test("createViewPicker returns the full ViewPicker contract", () => {
   expectTypeOf(picker.registerCommand).toEqualTypeOf<() => void>()
 })
 
-test("host dialog/toast primitives pin kit's ui surface shape", () => {
-  // The published TuiPluginApi wraps toast as `ui.toast(input: TuiToast)`;
-  // kit's `ui.toast.show` mirrors that payload. Pinning ToastInput (above)
-  // plus the select-props contract is the compile-time link to the host —
-  // the full plugin-api → KitContext mapping is done by each consumer's
-  // wrapper and is intentionally not asserted here.
-  expectTypeOf<TuiPluginApi["ui"]["toast"]>().toEqualTypeOf<(input: TuiToast) => void>()
+test("host toast pins kit's ui surface shape", () => {
+  // V2 wraps toast as `context.ui.toast.show(options)`; kit's `ui.toast.show`
+  // mirrors that payload. Pinning ToastInput (above) plus the select-props
+  // contract is the compile-time link to the host — the full context →
+  // KitContext mapping is done by each consumer's wrapper and is
+  // intentionally not asserted here.
+  expectTypeOf<Context["ui"]["toast"]["show"]>().toEqualTypeOf<(options: ToastOptions) => void>()
 })

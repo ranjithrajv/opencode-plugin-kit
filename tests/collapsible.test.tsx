@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, test } from "vitest"
 import { render } from "solid-js/web"
-import { PluginContextProvider } from "@opencode-ai/plugin/tui"
+import { PluginContextProvider } from "@opencode/plugin/tui"
 import { createRoot } from "solid-js"
 import { CollapsibleGroup, CollapsibleSection } from "../src/collapsible.tsx"
 
