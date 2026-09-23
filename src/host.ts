@@ -1,6 +1,6 @@
 // Narrow host-contract types for opencode-plugin-kit.
 //
-// `@opencode/plugin` is beta: its types ARE the spec. Kit consumes only a
+// `@opencode/plugin` (v2) types ARE the spec. Kit consumes only a
 // small slice of the host context, so instead of accepting `any` everywhere
 // (which silently survives host upgrades and breaks at runtime), this module
 // defines the *structural minimum* kit needs and re-exports the exact host
@@ -14,7 +14,7 @@
 // Host types kit re-exports (single import point for consumers)
 // ---------------------------------------------------------------------------
 
-/** Toast payload — mirrored from the host's TuiToast; host drift here breaks CI. */
+/** Toast payload — structural subset of the host's v2 `ToastOptions`; drift breaks CI. */
 export type ToastInput = {
   message: string
   variant?: "success" | "error" | "warning" | "info"
@@ -32,10 +32,10 @@ export type SelectOption<Value = string> = {
 // Structural minimum of the host context kit touches
 // ---------------------------------------------------------------------------
 
-/** `context.storage.store(key, { initial })` — the older host returns
- * `[value, ref]` (mutating `ref` persists); the newer floating `beta` host
- * types it as `readonly [T, (mutation: (draft: T) => void) => Promise<void>]`.
- * Both shapes satisfy this union; kit code reads `[0]` and mutates it, which
+/** `context.storage.store(key, { initial })` — v2 types this as
+ * `readonly [Store<T>, (mutation: (draft: T) => void) => Promise<void>]`;
+ * the older host returned `[T, T]` (mutating the second entry persisted).
+ * Both shapes satisfy this union; kit reads `[0]` and mutates it, which
  * both hosts persist. */
 export interface KitStorage {
   store<T extends object>(
@@ -60,7 +60,7 @@ export interface KitUI {
     alert(input: { title: string; message: string }): Promise<unknown>
     select(input: {
       title: string
-      message: string
+      placeholder?: string
       current?: string
       options: readonly SelectOption[]
     }): Promise<unknown>
@@ -75,7 +75,7 @@ export interface KitCommandEntry {
   readonly title: string
   readonly description: string
   readonly group: string
-  readonly palette?: boolean
+  readonly palette?: true
   readonly suggested?: boolean
   readonly slash?: { name: string; aliases?: string[]; arguments?: true }
   run: (input?: string) => void
@@ -102,7 +102,7 @@ export interface KitClient {
 }
 
 /** The structural minimum context for every kit factory. Deliberately
- * narrower than the host `TuiPluginApi`: kit only reads these surfaces, so
+ * narrower than the host `Plugin.Context`: kit only reads these surfaces, so
  * consumers can pass their real context directly. */
 export interface KitContext {
   readonly storage: KitStorage
@@ -117,9 +117,20 @@ export interface KitContext {
 // Structural message/model shapes the defensive readers walk
 // ---------------------------------------------------------------------------
 
-/** A message in either of the two beta-API shapes: a discriminated
- * `type`-tagged object or `{ info: Message }` envelope. Kit's readers
- * (`unwrap`, `isAssistant`, `providerId`, `modelId`) accept both. */
+/** A model-list entry (host `ModelInfo`) — what the model accessors accept.
+ * Deliberately omits `cost`, which is a number on messages but an array on
+ * model entries, so the same accessors serve both. */
+export interface KitModelShape {
+  readonly id?: string
+  readonly modelID?: string
+  readonly providerID?: string
+  readonly name?: string
+  readonly model?: { readonly providerID?: string; readonly modelID?: string; readonly id?: string }
+}
+
+/** A message in either of the two v2 shapes: a discriminated `type`-tagged
+ * object or `{ info: Message }` envelope. Kit's readers (`unwrap`,
+ * `isAssistant`, `providerId`, `modelId`) accept both. */
 export interface KitMessageShape {
   readonly type?: string
   readonly role?: string

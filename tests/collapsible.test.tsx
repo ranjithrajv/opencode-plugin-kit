@@ -13,7 +13,7 @@ function mount(ui: () => any): { text: () => string; click: (el: HTMLElement) =>
   const dispose = createRoot((dispose) => {
     render(
       () => (
-        <PluginContextProvider value={{ theme: { text: { default: "#fff", subdued: "#888" } } } as any}>
+        <PluginContextProvider value={{ theme: { text: { base: "#fff", muted: "#888" } } } as any}>
           {ui()}
         </PluginContextProvider>
       ),

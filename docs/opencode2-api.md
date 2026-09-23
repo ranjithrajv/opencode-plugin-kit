@@ -1,9 +1,10 @@
 # OpenCode V2 API cheat-sheet for contributors
 
-Everything in this kit is built against the OpenCode plugin API and the
-background service's HTTP API. This file records the pieces we actually use,
-so contributors don't have to rediscover them. Keep it in sync when you adopt
-a new endpoint or context surface. Official docs:
+Everything in this kit is built against the OpenCode v2 plugin API
+(`@opencode/plugin`, types-only) and the background service's HTTP API. This
+file records the pieces we actually use, so contributors don't have to
+rediscover them. Keep it in sync when you adopt a new endpoint or context
+surface. Official docs:
 <https://opencode.ai/v2/docs/> (plugin API: [/build/plugins](https://opencode.ai/v2/docs/build/plugins),
 CLI plugin API: [/build/plugins/cli](https://opencode.ai/v2/docs/build/plugins/cli)).
 
@@ -37,17 +38,17 @@ raw `fetch`: `context.client.integration.list()` returns the same integration
 list (typed). Fall back to reading `~/.local/share/opencode/auth.json` only
 as a bootstrap cache (see `availableProviders()` in `src/providers.ts`).
 
-## Plugin TUI context (`setup(context)`)
+## Plugin TUI context (`Plugin.Context` from `@opencode/plugin/tui`)
 
-| Surface                                             | What it gives you                                                                                    | Kit notes                                                                                                                                                                                                     |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `context.client`                                    | Generated OpenCode API client (typed, same contract as `/openapi.json`)                              | `client.integration.list()` for connected providers                                                                                                                                                           |
-| `context.data`                                      | Reactive session/message/provider caches (`data.session.message.list(id)`, `data.session.list()`, …) | Consumers derive usage from message history here                                                                                                                                                              |
-| `context.storage`                                   | `store(key, { initial })` (durable, cross-TUI) and `memory(key, …)`                                  | `viewPicker.ts` persists the selection here                                                                                                                                                                   |
-| `context.ui.slot({ replace/append: "…" , render })` | Slot tree contributions (`sidebar.footer`, `app`, …)                                                 | `render` receives the slot input **reactively** — reading a Solid signal inside it subscribes                                                                                                                 |
-| `context.keymap.layer(() => layer)`                 | Palette/slash/bound commands                                                                         | ⚠️ **Gotcha:** layers are owned by the _calling component_. Registering in `setup()` silently no-ops; register inside a rendered `app` slot's `render` (return `null`). `viewPicker.ts` handles this for you. |
-| `context.ui.dialog`                                 | `select`, `alert`, `confirm`, `prompt` (promise-based)                                               | `viewPicker.ts` uses `dialog.select`                                                                                                                                                                          |
-| `context.ui.toast`                                  | `show({ title, message, variant })`                                                                  | Switch confirmations                                                                                                                                                                                          |
+| Surface                                                                 | What it gives you                                                                                    | Kit notes                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `context.client`                                                        | Generated OpenCode API client (typed, same contract as `/openapi.json`)                              | `client.integration.list()` for connected providers                                                                                                                                                           |
+| `context.data`                                                          | Reactive session/message/provider caches (`data.session.message.list(id)`, `data.session.list()`, …) | Consumers derive usage from message history here                                                                                                                                                              |
+| `context.storage`                                                       | `store(key, { initial })` (durable, cross-TUI) and `memory(key, …)`                                  | `viewPicker.ts` persists the selection here                                                                                                                                                                   |
+| `context.ui.slot({ append/prepend/before/after/replace: "…", render })` | Slot tree contributions (`sidebar.footer`, `app`, …)                                                 | `render` receives the slot input **reactively** — reading a Solid signal inside it subscribes                                                                                                                 |
+| `context.keymap.layer(() => layer)`                                     | Palette/slash/bound commands                                                                         | ⚠️ **Gotcha:** layers are owned by the _calling component_. Registering in `setup()` silently no-ops; register inside a rendered `app` slot's `render` (return `null`). `viewPicker.ts` handles this for you. |
+| `context.ui.dialog`                                                     | `select`, `alert`, `confirm`, `prompt` (promise-based)                                               | `viewPicker.ts` uses `dialog.select`                                                                                                                                                                          |
+| `context.ui.toast`                                                      | `show({ title, message, variant })`                                                                  | Switch confirmations                                                                                                                                                                                          |
 
 ## Debugging
 

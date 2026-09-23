@@ -207,7 +207,7 @@ describe("createViewPicker", () => {
     expect(ctx.selectCalls).toEqual([
       {
         title: "Pick",
-        message: "choose",
+        placeholder: "choose",
         current: "go",
         options: [{ title: "Zen", value: "zen", description: "", disabled: false }],
       },

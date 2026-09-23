@@ -11,6 +11,5 @@
     "jsxImportSource": "@opentui/solid",
     "types": ["node"]
   },
-  "include": ["src", "tests"],
-  "exclude": ["tests/**/*.test-d.ts"]
+  "include": ["src", "tests"]
 }

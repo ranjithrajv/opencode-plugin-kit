@@ -25,15 +25,15 @@ When in doubt, keep it out until a second consumer needs it.
 - **No build step.** The package ships TypeScript source (`exports` point at
   `.ts` files); consumers compile it with their own `tsc`. Do not add a
   bundler or emit `dist/`.
-- **Defensive reads only.** The OpenCode plugin API is beta; every helper
-  that touches message/model/API shapes must read defensively (`??`, optional
+- **Defensive reads only.** The OpenCode v2 plugin API still evolves; every
+  helper that touches message/model/API shapes must read defensively (`??`, optional
   chaining) and return empty values rather than throw. `unwrap()` /
   `asArray()` in `providers.ts` are the canonical examples.
 - **Pure text helpers stay pure.** `rows.ts` and `format.ts` do no I/O. If a
   helper needs the filesystem, network, or plugin context, it belongs in a
   context-taking module (like `viewPicker.ts`) or in the consuming plugin.
 - **No new runtime dependencies.** Runtime deps are peer-only (`solid-js`,
-  `@opentui/*`, `@opencode-ai/plugin` per the consumers' own setup) plus
+  `@opentui/*`, `@opencode/plugin` per the consumers' own setup) plus
   `zod` — allowed only in `schemas.ts` for boundary-shape parsing.
 - **100% test coverage.** All new code must include tests that maintain 100%
   line, branch, function, and statement coverage.

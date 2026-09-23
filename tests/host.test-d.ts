@@ -2,8 +2,8 @@
 // V2 host API (`@opencode/plugin` + `@opencode/client`).
 //
 // If the host's published types drift away from what kit consumes, these
-// `expectTypeOf` assertions fail CI — surfacing the breakage at typecheck
-// time instead of at runtime in a user's TUI.
+// assertions fail the typecheck — surfacing the breakage at compile time
+// instead of at runtime in a user's TUI. Run with `npm run test:types`.
 import { expectTypeOf, test } from "vitest"
 import type { ModelInfo, SessionMessageAssistant } from "@opencode/client"
 import type {
@@ -46,16 +46,16 @@ test("picker options match the host dialog select option contract", () => {
   }>()
 })
 
-test("the picker's command fields are a structural subset of the host command shape", () => {
-  expectTypeOf<Pick<KitCommandEntry, "title" | "description" | "suggested" | "slash">>().toExtend<KeymapCommand>()
+test("the picker's command entry is a structural subset of the host command shape", () => {
+  expectTypeOf<KitCommandEntry>().toExtend<KeymapCommand>()
 })
 
 test("kit storage satisfies the structural minimum consumers rely on", () => {
   interface Row {
     id: string
   }
-  const [, ref] = expectTypeOf({} as KitStorage).store("k", { initial: { id: "a" } as Row })
-  expectTypeOf(ref).toEqualTypeOf<Row>()
+  const [store] = ({} as KitStorage).store("k", { initial: { id: "a" } as Row })
+  expectTypeOf(store).toEqualTypeOf<Row>()
 })
 
 // ---------------------------------------------------------------------------
@@ -66,17 +66,17 @@ test("kit storage satisfies the structural minimum consumers rely on", () => {
 
 test("host assistant message satisfies kit's message shape", () => {
   expectTypeOf<SessionMessageAssistant>().toExtend<KitMessageShape>()
-  const m = expectTypeOf({} as SessionMessageAssistant)
-  expectTypeOf(providerId(m.get())).toEqualTypeOf<string>()
-  expectTypeOf(modelId(m.get())).toEqualTypeOf<string>()
-  expectTypeOf(isAssistant(m.get())).toEqualTypeOf<boolean>()
+  const m = {} as SessionMessageAssistant
+  expectTypeOf(providerId(m)).toEqualTypeOf<string>()
+  expectTypeOf(modelId(m)).toEqualTypeOf<string>()
+  expectTypeOf(isAssistant(m)).toEqualTypeOf<boolean>()
 })
 
 test("host ModelInfo resolves through kit's model accessors", () => {
-  const m = expectTypeOf({} as ModelInfo)
-  expectTypeOf(modelId(m.get())).toEqualTypeOf<string>()
-  expectTypeOf(providerId(m.get())).toEqualTypeOf<string>()
-  expectTypeOf(modelName(m.get())).toEqualTypeOf<string>()
+  const m = {} as ModelInfo
+  expectTypeOf(modelId(m)).toEqualTypeOf<string>()
+  expectTypeOf(providerId(m)).toEqualTypeOf<string>()
+  expectTypeOf(modelName(m)).toEqualTypeOf<string>()
 })
 
 test("message envelopes unwrap to their inner message", () => {

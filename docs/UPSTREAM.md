@@ -24,7 +24,7 @@ Rules:
 - One pattern per issue/PR. Upstream maintainers merge focused changes.
 - Every SUBMIT gets the issue/PR number recorded here so status is auditable.
 - Nothing is deleted from the kit until the absorbing OpenCode release is
-  what consumers actually pin (`@opencode-ai/plugin` `beta` moves fast; check
+  what consumers actually pin (`@opencode/plugin` moves fast; check
   the installed version, not the latest changelog).
 
 ## Candidate queue
@@ -97,7 +97,7 @@ onChange, persist })` or `context.commands.registerView()` — reference
   OpenAPI spec and plugin docs; promote/demote candidates; check whether
   submitted items were absorbed silently (grep the plugin API changelog).
 - **Per release of the kit:** re-run the consumers against the installed
-  `@opencode-ai/plugin` version before bumping; a failed typecheck upstream
+  `@opencode/plugin` version before bumping; a failed typecheck upstream
   is an early absorption signal in reverse.
 
 ## Absorbed log

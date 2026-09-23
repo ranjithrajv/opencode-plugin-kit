@@ -131,7 +131,7 @@ export function createViewPicker<T extends PickerOption>(context: KitContext, co
     try {
       const selected = await context.ui.dialog.select({
         title: config.dialog.title,
-        message: config.dialog.message,
+        placeholder: config.dialog.message,
         current: currentID(),
         options: registry.filter(selectable).map((e) => ({
           title: e.title,

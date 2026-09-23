@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Aligned the remaining host-contract details with the V2 API: `dialog.select`
+  now sends `placeholder` (V2 dropped `message`), and `palette` /
+  `slash.arguments` are literal types matching `KeymapCommand`.
+- Added `KitModelShape` so the model accessors accept both messages (numeric
+  `cost`) and model-list entries / `ModelInfo` (array `cost`).
+
+### Fixed
+
+- `tsconfig.json` no longer excludes `tests/**/*.test-d.ts`. The exclude was
+  inherited by Vitest's typechecker, so `host.test-d.ts` — the host-contract
+  tripwire — was silently never typechecked.
+- Corrected `host.test-d.ts` (missing `KitStorage` import, a non-existent
+  `expectTypeOf(...).get()`, and the command subset omitting required `run`).
+
+## [1.0.0-alpha.6]
+
+### Changed
+
+- Migrated the host contract from the legacy V1 plugin beta to the OpenCode
+  v2 packages `@opencode/plugin` / `@opencode/sdk` / `@opencode/theme`
+  (`2.0.15`, types-only optional peer): import paths and the `ResolvedTheme`
+  text tokens (`text.base` / `text.muted`).
+- `readAuth()` now reads OpenCode 2's SQLite credential store, falling back to
+  the legacy `auth.json`.
+
 ## [1.0.0-alpha.5] - 2026-09-08
 
 ### Fixed

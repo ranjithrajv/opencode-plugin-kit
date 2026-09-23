@@ -16,8 +16,8 @@ Published on [npm](https://www.npmjs.com/package/opencode-plugin-kit):
 npm install opencode-plugin-kit
 ```
 
-Plugins depending on the kit declare it in `dependencies`; the SDK peer
-(`@opencode-ai/plugin`) must match your OpenCode runtime version (see each
+Plugins depending on the kit declare it in `dependencies`; the host peer
+(`@opencode/plugin`) must match your OpenCode v2 runtime version (see each
 plugin's README).
 
 ## Status
@@ -87,7 +87,7 @@ their unique data and rendering.
 | `commands.ts`           | `createToggle()`, `registerKeymapCommand()`                                                                                                                                | Toggle command + keymap registration                    |
 | `workspace.ts`          | `resolveLocation()`, `workspaceDirectory()`                                                                                                                                | Workspace location resolution                           |
 | `toast.ts`              | `showToast()`                                                                                                                                                              | Toast helper                                            |
-| `host.ts`               | `KitContext`, `KitMessageShape`                                                                                                                                            | Structural host-contract types                          |
+| `host.ts`               | `KitContext`, `KitMessageShape`, `KitModelShape`                                                                                                                           | Structural host-contract types                          |
 
 Everything is re-exported from the package root (`src/index.ts`).
 
@@ -203,10 +203,10 @@ consumer's `package.json`, then `npm install` (or `bun install`).
 
 ## Compatibility
 
-The host plugin API is beta; its types are the spec. Kit consumes the context
+The OpenCode v2 host plugin API's types are the spec. Kit consumes the context
 structurally — anything the host ships with the expected members satisfies it.
 
-- **No runtime dependency** on `@opencode-ai/plugin` — types only
+- **No runtime dependency** on `@opencode/plugin` — types only
 - **Optional peer** — declared as optional so consumers share one copy
 - **CI tripwire** — `host.test-d.ts` pins published host types against kit's
   contract; drift fails CI with a readable diff

@@ -7,7 +7,7 @@ import { join } from "node:path"
 import { createRequire } from "node:module"
 import { createSignal } from "solid-js"
 import { connectedProviderIds } from "./schemas.ts"
-import type { KitContext, KitMessageShape } from "./host.ts"
+import type { KitContext, KitMessageShape, KitModelShape } from "./host.ts"
 
 export const ZEN_PROVIDER = "opencode"
 export const GO_PROVIDER = "opencode-go"
@@ -53,17 +53,17 @@ export function asArray<T = any>(out: unknown): T[] {
 }
 
 /** Model id from either a model-list object or a message/message-part shape. */
-export function modelId(m: KitMessageShape): string {
+export function modelId(m: KitModelShape): string {
   return m?.model?.modelID ?? m?.modelID ?? m?.model?.id ?? m?.id ?? ""
 }
 
 /** Provider id from either a model-list object or a message/message-part shape. */
-export function providerId(m: KitMessageShape): string {
+export function providerId(m: KitModelShape): string {
   return m?.model?.providerID ?? m?.providerID ?? ""
 }
 
 /** Display name, falling back to the model id when the API omits `name`. */
-export function modelName(m: KitMessageShape): string {
+export function modelName(m: KitModelShape): string {
   return m?.name ?? modelId(m)
 }
 
@@ -76,8 +76,12 @@ const DB_PATH = () => join(homedir(), ".local/share/opencode/opencode.db")
 
 /** Run a query with either SQLite driver's API and return rows. */
 function queryRows(db: any, sql: string): any[] {
-  try { return db.query(sql).all() } catch {}
-  try { return db.prepare(sql).all() } catch {}
+  try {
+    return db.query(sql).all()
+  } catch {}
+  try {
+    return db.prepare(sql).all()
+  } catch {}
   return []
 }
 
@@ -123,7 +127,9 @@ function readAuthDb(): Record<string, string> {
           if (id && typeof key === "string" && key.trim()) keys[id] = key.trim()
         } catch {}
       }
-      try { db.close?.() } catch {}
+      try {
+        db.close?.()
+      } catch {}
     }
   } catch {}
   _dbCache = { at: now, keys }
