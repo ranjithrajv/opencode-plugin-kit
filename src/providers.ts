@@ -1,9 +1,10 @@
 // Shared provider vocabulary for OpenCode sidebar widgets.
 // Provider IDs are the OpenCode workspace provider ids ("opencode" = Zen,
 // "opencode-go" = Go).
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
+import { createRequire } from "node:module"
 import { createSignal } from "solid-js"
 import { connectedProviderIds } from "./schemas.ts"
 import type { KitContext, KitMessageShape } from "./host.ts"
@@ -71,21 +72,79 @@ export function modelName(m: KitMessageShape): string {
 // ---------------------------------------------------------------------------
 
 const AUTH_PATH = () => join(homedir(), ".local/share/opencode/auth.json")
+const DB_PATH = () => join(homedir(), ".local/share/opencode/opencode.db")
 
-/** Single defensive read of auth.json, keyed by provider id.
- * Every consumer shares this parse so the path and shape handling can't drift. */
+/** Run a query with either SQLite driver's API and return rows. */
+function queryRows(db: any, sql: string): any[] {
+  try { return db.query(sql).all() } catch {}
+  try { return db.prepare(sql).all() } catch {}
+  return []
+}
+
+/** Open OpenCode 2's SQLite store read-only, resolving the driver across
+ * Bun (`bun:sqlite`) and Node 22+ (`node:sqlite`). Returns null when the
+ * store is absent or no driver is available. */
+function openCredentialDb(): any | null {
+  if (!existsSync(DB_PATH())) return null
+  const attempts: Array<() => any> = [
+    () => (import.meta as any).require?.("bun:sqlite"),
+    () => (globalThis as any).require?.("bun:sqlite"),
+    () => createRequire(import.meta.url)("bun:sqlite"),
+    () => (Function("return require")() as any)("bun:sqlite"),
+  ]
+  for (const attempt of attempts) {
+    try {
+      const { Database } = attempt()
+      if (Database) return new Database(DB_PATH(), { readonly: true })
+    } catch {}
+  }
+  try {
+    const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite")
+    if (DatabaseSync) return new DatabaseSync(DB_PATH(), { readOnly: true })
+  } catch {}
+  return null
+}
+
+let _dbCache: { at: number; keys: Record<string, string> } | null = null
+
+/** API keys from OpenCode 2's SQLite `credential` table (integration_id →
+ * key). Cached briefly because `readAuth` runs on every render. */
+function readAuthDb(): Record<string, string> {
+  const now = Date.now()
+  if (_dbCache && now - _dbCache.at < 30_000) return _dbCache.keys
+  const keys: Record<string, string> = {}
+  try {
+    const db = openCredentialDb()
+    if (db) {
+      for (const row of queryRows(db, "SELECT integration_id, value FROM credential")) {
+        const id = String(row?.integration_id ?? "").trim()
+        try {
+          const key = JSON.parse(String(row?.value ?? ""))?.key
+          if (id && typeof key === "string" && key.trim()) keys[id] = key.trim()
+        } catch {}
+      }
+      try { db.close?.() } catch {}
+    }
+  } catch {}
+  _dbCache = { at: now, keys }
+  return keys
+}
+
+/** Single defensive read of the auth sources, keyed by provider id.
+ * OpenCode 2 keeps credentials in its SQLite store; `auth.json` is the
+ * legacy V1 store. Both are read (SQLite wins on conflict) so consumers see
+ * the same keys regardless of OpenCode version. */
 export function readAuth(): Record<string, string> {
+  const out: Record<string, string> = {}
   try {
     const auth = JSON.parse(readFileSync(AUTH_PATH(), "utf8"))
-    const out: Record<string, string> = {}
     for (const [id, cfg] of Object.entries(auth)) {
       const key = (cfg as any)?.key
       if (typeof key === "string" && key.trim()) out[id] = key.trim()
     }
-    return out
-  } catch {
-    return {}
-  }
+  } catch {}
+  for (const [id, key] of Object.entries(readAuthDb())) out[id] = key
+  return out
 }
 
 /** The API key for one provider, or "" when absent. */
