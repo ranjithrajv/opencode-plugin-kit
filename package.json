@@ -1,6 +1,6 @@
 {
   "name": "opencode-plugin-kit",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.7",
   "description": "Shared building blocks for OpenCode sidebar plugins: provider vocabulary, row formatting, defensive message traversal, connected-provider tracking, polling fetcher, cached resources, and a persisted view/filter picker (registry + slash command + dialog + toast).",
   "keywords": [
     "opencode",
@@ -36,9 +36,9 @@
     "test:coverage": "vitest run --coverage.enabled"
   },
   "devDependencies": {
-    "@opencode/plugin": "2.0.15",
-    "@opencode/sdk": "2.0.15",
-    "@opencode/theme": "2.0.15",
+    "@opencode/plugin": "2.0.16",
+    "@opencode/sdk": "2.0.16",
+    "@opencode/theme": "2.0.16",
     "@opentui/core": "^0.5.11",
     "@opentui/solid": "^0.5.11",
     "@types/node": "^26.5.0",
@@ -53,7 +53,7 @@
     "zod": "^4.5.4"
   },
   "peerDependencies": {
-    "@opencode/plugin": "^2.0.15",
+    "@opencode/plugin": "2.0.16",
     "solid-js": "^1.9.12",
     "zod": "^4.5.4"
   },
