@@ -32,8 +32,9 @@
     "fmt": "vp fmt",
     "lint": "vp lint",
     "typecheck": "tsc --noEmit",
-    "test:types": "vitest run --typecheck",
-    "test:coverage": "vitest run --coverage.enabled"
+    "test": "vp test",
+    "test:types": "vp test --typecheck",
+    "test:coverage": "vp exec vitest run --coverage"
   },
   "devDependencies": {
     "@opencode/plugin": "2.0.15",
