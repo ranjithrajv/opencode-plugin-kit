@@ -2,7 +2,7 @@
 //
 // The host's toast UI is optional at the edges (beta API): every plugin
 // hand-rolled the same try/catch fallback around `ui.toast.show`.
-import type { KitContext, KitUI, ToastInput } from "./host.ts"
+import type { KitUI, ToastInput } from "./host.ts"
 
 /** Show a toast; silently no-ops when the host has no toast UI or it throws.
  * Takes a minimal structural slice — the full host context's `ui.slot` is

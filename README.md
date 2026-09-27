@@ -195,6 +195,41 @@ const totals = walkMessages(
 const { input, output, cost } = sumProviderTokens(context, sessionID, "opencode")
 ```
 
+### Collapsible
+
+Imported from the `collapsible` subpath so the Solid JSX stays out of the main
+entry.
+
+```ts
+import { CollapsibleSection, CollapsibleGroup } from "opencode-plugin-kit/collapsible"
+
+// From a host component that already has the plugin context:
+const { theme } = usePlugin()
+
+CollapsibleSection({
+  title: "Skills",
+  count: items.length,
+  threshold: 2,        // Collapse the body at or below this count
+  pinned: <Note />,    // Always visible between header and body
+  theme,               // Header colors; pass the host's theme
+  children: <List />,
+})
+
+CollapsibleGroup({
+  title: "Providers",
+  count: ids.length,
+  defaultCollapsed: true,
+  theme,
+  children: (collapsed) => (collapsed() ? <Summary /> : <List />),
+})
+```
+
+`theme` is optional but **recommended**. Without it the kit falls back to
+`usePlugin()`, which throws when the kit is installed from `node_modules`
+(it resolves its own copy of `@opencode/plugin` / `solid-js`, so the host's
+plugin context is not visible). If the context is missing the header falls back
+to unthemed text rather than throwing.
+
 ## Consuming Plugins
 
 | Plugin                                                                                      | What it does                                                   |
@@ -204,8 +239,21 @@ const { input, output, cost } = sumProviderTokens(context, sessionID, "opencode"
 | [opencode-skill-lister](https://github.com/ranjithrajv/opencode-skill-lister)               | Skills list in sidebar                                         |
 | [opencode-plugin-manager](https://github.com/ranjithrajv/opencode-plugin-manager)           | Plugin manager in sidebar                                      |
 
-Link locally with `"opencode-plugin-kit": "file:../opencode-plugin-kit"` in the
-consumer's `package.json`, then `npm install` (or `bun install`).
+Install from the registry:
+
+```sh
+npm install opencode-plugin-kit@alpha
+```
+
+The `latest` dist-tag tracks the newest v1 alpha; v2 releases ship under the
+`alpha` dist-tag, so pin `opencode-plugin-kit@alpha` (or an explicit range) until
+`latest` moves to v2.
+
+For local development, link the sibling checkout with
+`"opencode-plugin-kit": "file:../opencode-plugin-kit"` in the consumer's
+`package.json`, then `npm install` (or `bun install`). Note that a linked
+checkout shares one module graph with the host, so the collapsible components
+find the plugin context without a `theme` prop; a registry install does not.
 
 ## Compatibility
 

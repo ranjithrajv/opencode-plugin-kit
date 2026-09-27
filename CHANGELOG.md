@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0-alpha.7] - 2026-09-27
+## [1.0.0-alpha.7] - 2026-09-28
 
 ### Changed
 
@@ -17,6 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   earlier 2.x releases ship no `./tui` subpath export, so nothing importing
   `@opencode/plugin/tui` can resolve it.
 - Documented the 2.0.3 floor in the Compatibility section.
+- `CollapsibleSection` and `CollapsibleGroup` take an optional `theme` prop, so
+  a consumer can hand down the host's own `usePlugin().theme` instead of the
+  kit reaching for the plugin context itself.
+
+### Fixed
+
+- `CollapsibleSection` / `CollapsibleGroup` no longer throw
+  `PluginContextProvider is missing` when the kit is installed from `node_modules`.
+  Both called `usePlugin()` unconditionally, but a registry install resolves a
+  different copy of `@opencode/plugin` and `solid-js` than the one the host
+  renders with, so the host's plugin context was never visible. Callers that
+  already hold the context pass `theme` down; the `usePlugin()` fallback still
+  resolves for deduped module graphs (tests, monorepos) and degrades to unthemed
+  text rather than throwing.
 
 ## [1.0.0-alpha.6] - 2026-09-23
 
