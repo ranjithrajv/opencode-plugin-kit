@@ -14,6 +14,39 @@ import { createSignal, Show } from "solid-js"
 import type { JSX } from "solid-js"
 import { usePlugin } from "@opencode/plugin/tui"
 
+/**
+ * Theme tokens a collapsible header needs. Derived from the host theme so
+ * callers can pass their `usePlugin().theme` straight through, and so we
+ * don't pin the host's color type (e.g. `RGBA`) here.
+ */
+type HostTheme = ReturnType<typeof usePlugin>["theme"]
+export interface CollapsibleTheme {
+  text: {
+    base?: HostTheme["text"]["base"]
+    muted?: HostTheme["text"]["muted"]
+  }
+}
+
+/**
+ * Resolve the theme for a header.
+ *
+ * Prefer an explicitly passed `theme`. When this package is consumed from
+ * `node_modules`, `usePlugin()` here resolves a different copy of
+ * `@opencode/plugin` (and `solid-js`) than the host renders with, so the
+ * host's plugin context is not visible and `usePlugin()` throws
+ * "PluginContextProvider is missing". Callers that already hold the host
+ * context pass `theme` down; the `usePlugin()` fallback keeps working for
+ * consumers whose module graph is deduped (tests, monorepos).
+ */
+function resolveTheme(explicit?: CollapsibleTheme): CollapsibleTheme {
+  if (explicit) return explicit
+  try {
+    return usePlugin().theme
+  } catch {
+    return { text: {} }
+  }
+}
+
 /** The top-level collapsible sidebar section. */
 export function CollapsibleSection(props: {
   title: string
@@ -26,9 +59,11 @@ export function CollapsibleSection(props: {
   /** Always-visible content between the header and the collapsible body
    * (e.g. the plugin manager's status note). */
   pinned?: JSX.Element
+  /** Header colors; pass the host's `usePlugin().theme` from the consumer. */
+  theme?: CollapsibleTheme
   children: JSX.Element
 }) {
-  const theme = usePlugin().theme
+  const theme = resolveTheme(props.theme)
   const [expanded, setExpanded] = createSignal(false)
   const count = () => props.count ?? 0
   const threshold = () => props.threshold ?? 2
@@ -62,9 +97,11 @@ export function CollapsibleGroup(props: {
   title: string
   count: number
   defaultCollapsed?: boolean
+  /** Header colors; pass the host's `usePlugin().theme` from the consumer. */
+  theme?: CollapsibleTheme
   children: JSX.Element | ((collapsed: () => boolean) => JSX.Element)
 }) {
-  const theme = usePlugin().theme
+  const theme = resolveTheme(props.theme)
   const [collapsed, setCollapsed] = createSignal(props.defaultCollapsed ?? false)
   return (
     <box flexDirection="column">

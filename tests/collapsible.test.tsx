@@ -33,6 +33,18 @@ function header(container: HTMLElement): HTMLElement {
   return container.firstElementChild!.firstElementChild as HTMLElement
 }
 
+/** Render without a PluginContextProvider — the npm-dependency case, where
+ * the host's plugin context is not visible and `usePlugin()` throws. */
+function mountBare(ui: () => any): { text: () => string; dispose: () => void } {
+  const container = document.createElement("div")
+  document.body.appendChild(container)
+  const dispose = createRoot((dispose) => {
+    render(ui, container)
+    return dispose
+  })
+  return { text: () => container.textContent ?? "", dispose }
+}
+
 describe("CollapsibleSection", () => {
   test("bold title with the count while collapsed", () => {
     const m = mount(() => (
@@ -88,6 +100,26 @@ describe("CollapsibleSection", () => {
       </CollapsibleSection>
     ))
     expect(m.text()).toContain("(2 npm · 7 builtin)")
+    m.dispose()
+  })
+
+  test("uses an explicitly passed theme when the host context is not visible", () => {
+    const m = mountBare(() => (
+      <CollapsibleSection title="PLUGINS" count={1} theme={{ text: { base: "#abc", muted: "#def" } } as any}>
+        <text>body</text>
+      </CollapsibleSection>
+    ))
+    expect(m.text()).toContain("PLUGINS")
+    m.dispose()
+  })
+
+  test("inherits colors when there is no provider and no theme", () => {
+    const m = mountBare(() => (
+      <CollapsibleSection title="SKILLS" count={1}>
+        <text>body</text>
+      </CollapsibleSection>
+    ))
+    expect(m.text()).toContain("SKILLS")
     m.dispose()
   })
 })
