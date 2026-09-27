@@ -212,6 +212,9 @@ consumer's `package.json`, then `npm install` (or `bun install`).
 The OpenCode v2 host plugin API's types are the spec. Kit consumes the context
 structurally — anything the host ships with the expected members satisfies it.
 
+- **Floor: `@opencode/plugin` 2.0.3.** Earlier 2.x releases have no `./tui`
+  subpath export, so nothing that imports `@opencode/plugin/tui` can resolve it.
+  Verified by typecheck and the type-tripwire against 2.0.3, 2.0.10 and 2.0.18.
 - **No runtime dependency** on `@opencode/plugin` — types only
 - **Optional peer** — declared as optional so consumers share one copy
 - **CI tripwire** — `host.test-d.ts` pins published host types against kit's

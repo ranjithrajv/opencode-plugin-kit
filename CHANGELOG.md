@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.0.0-alpha.7] - 2026-09-27
+
+### Changed
+
+- Widened the `@opencode/plugin` peer range from `^2.0.15` to `^2.0.3`,
+  matching what the kit actually supports. Verified by typecheck and the
+  type-tripwire against 2.0.3, 2.0.10 and 2.0.18. **2.0.3 is the floor**:
+  earlier 2.x releases ship no `./tui` subpath export, so nothing importing
+  `@opencode/plugin/tui` can resolve it.
+- Documented the 2.0.3 floor in the Compatibility section.
+
 ## [1.0.0-alpha.6] - 2026-09-23
 
 ### Changed
@@ -82,6 +95,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI
 - Pre-commit hooks via `vp staged`
 
-[Unreleased]: https://github.com/ranjithrajv/opencode-plugin-kit/compare/v1.0.0-alpha.6...HEAD
+[Unreleased]: https://github.com/ranjithrajv/opencode-plugin-kit/compare/v1.0.0-alpha.7...HEAD
+[1.0.0-alpha.7]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.7
 [1.0.0-alpha.6]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.6
+[1.0.0-alpha.5]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.5
 [1.0.0-alpha.1]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.1
