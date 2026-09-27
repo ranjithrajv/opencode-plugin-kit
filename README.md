@@ -16,11 +16,11 @@ Published on [npm](https://www.npmjs.com/package/opencode-plugin-kit):
 npm install opencode-plugin-kit
 ```
 
-> **Still a prerelease.** `latest` currently resolves to `1.0.0-alpha.6` — the
-> first OpenCode v2 build. The publish workflow tags every prerelease under
-> its own identifier (`alpha`, `beta`, …) and leaves `latest` alone, so later
-> alphas will _not_ move `latest` automatically. To track the newest build,
-> install `opencode-plugin-kit@alpha`.
+> **Still a prerelease.** `latest` currently resolves to `1.0.0-alpha.7`, an
+> OpenCode v2 build. The publish workflow tags every prerelease under its own
+> identifier (`alpha`, `beta`, …) and leaves `latest` alone, so later alphas
+> will _not_ move `latest` automatically. To track the newest build, install
+> `opencode-plugin-kit@alpha`.
 
 Plugins depending on the kit declare it in `dependencies`; the host peer
 (`@opencode/plugin`) must match your OpenCode v2 runtime version (see each
@@ -28,7 +28,8 @@ plugin's README).
 
 ## Status
 
-**v1.0.0-alpha.6** — API stabilized, ready for integration testing.
+**v1.0.0-alpha.7** — API stabilized, ready for integration testing. Ships the
+OpenCode v2 host contract; requires `@opencode/plugin` 2.0.3 or newer.
 
 ## Quick Start
 
@@ -242,12 +243,13 @@ to unthemed text rather than throwing.
 Install from the registry:
 
 ```sh
-npm install opencode-plugin-kit@alpha
+npm install opencode-plugin-kit
 ```
 
-The `latest` dist-tag tracks the newest v1 alpha; v2 releases ship under the
-`alpha` dist-tag, so pin `opencode-plugin-kit@alpha` (or an explicit range) until
-`latest` moves to v2.
+`latest` currently points at `1.0.0-alpha.7`, so a plain install gets the v2
+kit. The publish workflow tags each prerelease under its own identifier and
+leaves `latest` alone, so later alphas will not move it automatically — install
+`opencode-plugin-kit@alpha` to track the newest build.
 
 For local development, link the sibling checkout with
 `"opencode-plugin-kit": "file:../opencode-plugin-kit"` in the consumer's
@@ -295,6 +297,28 @@ vp test
 # Test with coverage
 vp test --coverage
 ```
+
+### Publishing
+
+`.github/workflows/publish.yml` runs on a published GitHub release (and on
+`workflow_dispatch`) and uses **npm trusted publishing**: the job carries
+`id-token: write` and `npm publish` trades that OIDC identity for a
+short-lived registry token. There is no `NPM_TOKEN` secret to store, rotate or
+leak, which is why long-lived tokens are no longer used here — npm has started
+restricting 2FA-bypass tokens for direct publishing.
+
+One-time setup on npmjs.com, required before the first OIDC publish:
+
+1. Package → **Settings** → **Trusted Publisher** (or Access Tokens →
+   Trusted Publishing).
+2. Add a GitHub Actions publisher with
+   - Organization/user: `ranjithrajv`
+   - Repository: `opencode-plugin-kit`
+   - Workflow filename: `publish.yml`
+     (npm matches on the workflow _filename_, not the ref or event.)
+
+Until that is registered the job fails with an authentication error. The
+`NPM_TOKEN` repo secret can be deleted afterwards.
 
 ## Contributing
 
