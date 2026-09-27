@@ -22,8 +22,13 @@ jobs:
         with:
           # setup-node above owns the Node version and the registry auth that
           # `npm publish` needs; keep it and only borrow the `vp` binary.
+          #
+          # `package-manager` is deliberately NOT set. setup-vp rejects the
+          # input outright unless Vite+ >= 0.3.1, and this repo pins 0.1.x —
+          # passing `package-manager: false` failed the whole job before any
+          # step ran. Leaving it unset matches ci.yml, which works; `npm` here
+          # is still the runner's own, and auth comes from setup-node's .npmrc.
           node-manager: false
-          package-manager: false
           run-install: false
 
       - name: Install dependencies
