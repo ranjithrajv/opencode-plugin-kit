@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Behaviour-level coverage for the polling fetcher refresh-after-stop and post-error `inFlight()` reset semantics.
+
 ## [1.0.0-alpha.7] - 2026-09-28
 
 ### Changed
