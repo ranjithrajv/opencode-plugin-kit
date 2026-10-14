@@ -132,4 +132,28 @@ describe("createPollingFetcher", () => {
     expect(fetch).toHaveBeenCalledTimes(1)
     pf.stop()
   })
+
+  test("refresh after stop can still drive a fetch once the throttle has elapsed", async () => {
+    const fetch = vi.fn(() => Promise.resolve("v"))
+    const pf = createPollingFetcher({ fetch, intervalMs: 10_000, throttleMs: 0 })
+    await ticks(0)
+    pf.stop() // clears the timer ...
+    expect(pf.inFlight()).toBe(false)
+    // ... but the fetcher itself stays callable, so a host-initiated refresh works.
+    pf.refresh()
+    await ticks(0)
+    expect(fetch).toHaveBeenCalledTimes(2)
+    pf.stop()
+  })
+
+  test("inFlight clears even when the fetch rejects (and sampling continues)", async () => {
+    const onError = vi.fn()
+    const pf = createPollingFetcher({ fetch: () => Promise.reject(new Error("boom")), intervalMs: 1_000, onError })
+    await ticks(0)
+    expect(onError).toHaveBeenCalledTimes(1)
+    expect(pf.inFlight()).toBe(false)
+    await ticks(1_000)
+    expect(onError).toHaveBeenCalledTimes(2)
+    pf.stop()
+  })
 })
