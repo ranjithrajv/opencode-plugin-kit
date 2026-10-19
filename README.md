@@ -19,7 +19,7 @@ Published on [npm](https://www.npmjs.com/package/opencode-plugin-kit):
 npm install opencode-plugin-kit
 ```
 
-> **Still a prerelease.** `latest` currently resolves to `1.0.0-alpha.7`, an
+> **Still a prerelease.** `latest` currently resolves to `1.0.0-alpha.8`, an
 > OpenCode v2 build. The publish workflow tags every prerelease under its own
 > identifier (`alpha`, `beta`, …) and leaves `latest` alone, so later alphas
 > will _not_ move `latest` automatically. To track the newest build, install
@@ -433,7 +433,7 @@ Install from the registry:
 npm install opencode-plugin-kit
 ```
 
-`latest` currently points at `1.0.0-alpha.7`, so a plain install gets the v2
+`latest` currently points at `1.0.0-alpha.8`, so a plain install gets the v2
 kit. The publish workflow tags each prerelease under its own identifier and
 leaves `latest` alone, so later alphas will not move it automatically — install
 `opencode-plugin-kit@alpha` to track the newest build.
