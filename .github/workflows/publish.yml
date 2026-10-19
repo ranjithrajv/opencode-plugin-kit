@@ -58,7 +58,26 @@ jobs:
       - name: Host compatibility gate
         run: node scripts/check-host-compat.mjs
 
+      # A release published by hand, or a re-run of an older tag, must not turn
+      # into a red build. Skip the upload when this exact version is already on
+      # the registry, so the rest of the gate still runs and reports.
+      #
+      # `npm view` needs no auth, so this probe works even when the OIDC
+      # exchange further down would fail.
+      - name: Check whether this version is already published
+        id: already-published
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./package.json').name")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "$NAME@$VERSION already on npm; skipping publish."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to npm
+        if: steps.already-published.outputs.exists == 'false'
         run: |
           VERSION=$(node -p "require('./package.json').version")
           if [[ "$VERSION" == *-* ]]; then

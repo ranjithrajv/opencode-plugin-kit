@@ -531,6 +531,10 @@ One-time setup on npmjs.com, required before the first OIDC publish:
 Until that is registered the job fails with an authentication error. The
 `NPM_TOKEN` repo secret can be deleted afterwards.
 
+The job skips the upload when the tagged version is already on the registry
+(a release published by hand, or a re-run of an older tag), so a redundant run
+reports green instead of failing on a duplicate version.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) — and keep
