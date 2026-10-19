@@ -11,6 +11,9 @@ export default defineConfig({
     conditions: ["browser", "development"],
   },
   fmt: {
+    // Generated, byte-stable: CI regenerates it and fails on any diff, so the
+    // formatter must not rewrite it (cell padding would break that contract).
+    ignorePatterns: ["docs/COMPATIBILITY.md"],
     semi: false,
     singleQuote: false,
     printWidth: 120,

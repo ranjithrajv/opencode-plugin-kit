@@ -47,6 +47,17 @@ jobs:
       - name: Test with coverage
         run: vp exec vitest run --coverage
 
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Build reactive dist
+        run: bun build.ts
+
+      # Release gate: the published package must pass the type tripwire AND the
+      # runtime smoke against every supported host build. Runs before publish so
+      # a broken release cannot leave the runner.
+      - name: Host compatibility gate
+        run: node scripts/check-host-compat.mjs
+
       - name: Publish to npm
         run: |
           VERSION=$(node -p "require('./package.json').version")

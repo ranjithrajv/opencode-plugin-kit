@@ -1,6 +1,24 @@
 import { describe, expect, test, vi } from "vitest"
-import { createToggle, registerKeymapCommand } from "../src/commands.ts"
+import { createToggle, registerKeymapCommand, registerKeymapLayer } from "../src/commands.ts"
 import { fakeContext, fakeStorage, type FakeCell } from "./testkit.ts"
+
+describe("registerKeymapLayer", () => {
+  test("registers the layer factory directly", () => {
+    const ctx = fakeContext()
+    const factory = () => ({ mode: "global", priority: 10, commands: [] })
+    registerKeymapLayer(ctx, factory)
+    expect(ctx.layerCalls[0]).toMatchObject({ mode: "global", priority: 10 })
+  })
+
+  test("never throws when the host has no keymap or rejects the layer", () => {
+    expect(() => registerKeymapLayer({}, () => ({ mode: "global", priority: 10, commands: [] }))).not.toThrow()
+    const ctx = fakeContext()
+    vi.mocked(ctx.keymap.layer).mockImplementation(() => {
+      throw new Error("no layer")
+    })
+    expect(() => registerKeymapLayer(ctx, () => ({ mode: "global", priority: 10, commands: [] }))).not.toThrow()
+  })
+})
 
 describe("registerKeymapCommand", () => {
   test("registers through an app slot keymap layer", () => {

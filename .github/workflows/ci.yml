@@ -19,8 +19,13 @@ jobs:
           run-install: false
           cache: true
 
+      - uses: oven-sh/setup-bun@v2
+
       - name: Install dependencies
         run: vp install
+
+      - name: Build reactive dist (for tests and shipping)
+        run: bun build.ts
 
       - name: Check (format, lint, types)
         run: vp check

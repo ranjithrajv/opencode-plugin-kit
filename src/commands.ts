@@ -10,6 +10,24 @@ import { persistedCell } from "./cache.ts"
 import { showToast } from "./toast.ts"
 
 /**
+ * Register a keymap layer from a component that is already rendered (or from
+ * setup on hosts that allow it). Never throws: a host without keymap support
+ * must leave the rest of the widget working.
+ */
+type KeymapLayer = ReturnType<Parameters<KitContext["keymap"]["layer"]>[0]>
+
+export function registerKeymapLayer(
+  context: { readonly keymap?: KitContext["keymap"] },
+  factory: () => KeymapLayer,
+): void {
+  try {
+    context.keymap?.layer(factory)
+  } catch {
+    // Keymap unavailable; mouse interaction still works.
+  }
+}
+
+/**
  * Register one slash/palette command through a keymap layer. `command` may be
  * a factory — it re-evaluates on every palette render, keeping titles fresh
  * after the underlying state changes.

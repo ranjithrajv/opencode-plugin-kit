@@ -1,0 +1,40 @@
+name: Host compatibility
+
+# Guards every host build the kit claims to support, on two axes:
+#   1. type    — the contract tripwire (tests/host.test-d.ts)
+#   2. runtime — the runtime smoke (tests/runtime-smoke.test.ts)
+# Type alone has missed real breakage (JSX pragma, collapsible context); the
+# runtime leg imports the real host build and runs the kit factories.
+#
+# The job also regenerates docs/COMPATIBILITY.md and fails on any diff, so the
+# published matrix cannot silently drift from what the checks observed.
+#
+# Each version installs its own @opencode/plugin into a temp dir, so the checks
+# are independent of the repo's pinned devDependency. Keep the version list in
+# sync with DEFAULT_VERSIONS in scripts/check-host-compat.mjs.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  host-compat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Check every supported host version and refresh the matrix
+        run: node scripts/check-host-compat.mjs --write-matrix
+
+      - name: Fail if docs/COMPATIBILITY.md is stale
+        run: |
+          if ! git diff --exit-code -- docs/COMPATIBILITY.md; then
+            echo "::error::docs/COMPATIBILITY.md is out of date. Run 'npm run check:host-compat -- --write-matrix' and commit the result."
+            exit 1
+          fi

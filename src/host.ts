@@ -42,14 +42,55 @@ export interface KitStorage {
     key: string,
     opts: { initial: T },
   ): [T, T] | readonly [T, ((mutation: (draft: T) => void) => void | Promise<void>) | T]
+  /** Newer hosts expose a reactive memory store alongside (or instead of)
+   * `store`. Both back `createPersistedState`. */
+  memory?<T extends object>(
+    key: string,
+    opts: { initial: T },
+  ): [T, (mutation: (draft: T) => void) => void | Promise<void>]
 }
 
-/** Slot registration. Only `append`/`after` + a synchronous `render` are
- * needed; the host may accept more options. */
+/** Slot registration. The host may accept more anchors than kit uses. */
 export interface KitSlotOptions {
   readonly append?: string
   readonly after?: string
-  render: () => unknown
+  readonly before?: string
+  readonly replace?: string
+  render: (input?: any) => unknown
+}
+
+/** Full-screen panel surface (optional on older hosts). */
+export interface KitPanel {
+  open(name: string, options?: { presentation?: "panel" | "fullscreen" }): boolean | void
+  current?(): { name?: string } | undefined
+  close?(): void
+}
+
+/** Plugin page routing — register a page and navigate to it. */
+export interface KitRouter {
+  register(page: { name: string; render: (input: { data?: Record<string, unknown> }) => unknown }): () => void
+  navigate(destination: { type: "plugin"; id: string; name: string; data?: Record<string, unknown> }): void
+  current(): { type: string; id?: string; name?: string } | undefined
+}
+
+/** Session tab operations. */
+export interface KitTabs {
+  enabled(): boolean
+  list(): ReadonlyArray<{ sessionID: string; title?: string; active: boolean; busy?: boolean }>
+  open(sessionID: string): boolean
+  focus(sessionID: string): boolean
+  move(sessionID: string, index: number): boolean
+  close(sessionID?: string): boolean
+}
+
+/** Attention notification with optional sound and system notification. */
+export interface KitAttention {
+  notify(options: {
+    title?: string
+    message: string
+    notification?: boolean
+    sound?: boolean
+  }): Promise<{ ok: boolean }>
 }
 
 export interface KitUI {
@@ -66,6 +107,9 @@ export interface KitUI {
     }): Promise<unknown>
   }
   slot(options: KitSlotOptions): unknown
+  readonly panel?: KitPanel
+  readonly router?: KitRouter
+  readonly tabs?: KitTabs
 }
 
 /** Command entry handed to `keymap.layer()`. Structural subset of the
@@ -73,16 +117,30 @@ export interface KitUI {
 export interface KitCommandEntry {
   readonly id: string
   readonly title: string
-  readonly description: string
-  readonly group: string
+  /** Optional: panel-scoped key commands often omit palette metadata. */
+  readonly description?: string
+  readonly group?: string
   readonly palette?: true
   readonly suggested?: boolean
+  /** Key binding for panel-scoped layers. */
+  readonly bind?: string
+  /** Command-level enablement (e.g. "only while my panel is active"). */
+  readonly enabled?: () => boolean
   readonly slash?: { name: string; aliases?: string[]; arguments?: true }
   run: (input?: string) => void
 }
 
 export interface KitKeymap {
-  layer(register: () => { mode: string; priority: number; commands: KitCommandEntry[] }): void
+  layer(
+    register: () => {
+      /** Defaults to the host's base mode when omitted. */
+      mode?: string
+      priority: number
+      /** Layer-level enablement (newer hosts). */
+      enabled?: () => boolean
+      commands: KitCommandEntry[]
+    },
+  ): void
 }
 
 /** `context.data.session.message.list(sessionID)` — messages may arrive as
@@ -92,7 +150,10 @@ export interface KitSessionData {
     readonly message: {
       list(sessionID: string): readonly unknown[] | undefined
     }
+    readonly list?: () => readonly unknown[]
   }
+  /** Subscribe to a host data event; returns an unsubscribe fn when supported. */
+  readonly on?: (type: string, handler: () => void) => (() => void) | undefined
 }
 
 export interface KitClient {

@@ -1,10 +1,19 @@
+import { fileURLToPath } from "node:url"
 import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   resolve: {
-    // solid-js must resolve to the client build, or createResource throws
-    // "getNextContextId cannot be used under non-hydrating context".
-    alias: [{ find: /^solid-js$/, replacement: "solid-js/dist/solid.js" }],
+    alias: [
+      // solid-js must resolve to the client build, or createResource throws
+      // "getNextContextId cannot be used under non-hydrating context".
+      { find: /^solid-js$/, replacement: "solid-js/dist/solid.js" },
+      // The example plugin imports the package by name, like a real consumer;
+      // point that at source so the example test exercises the local build.
+      {
+        find: /^opencode-plugin-kit$/,
+        replacement: fileURLToPath(new URL("./src/index.ts", import.meta.url)),
+      },
+    ],
     conditions: ["browser", "development"],
   },
   test: {

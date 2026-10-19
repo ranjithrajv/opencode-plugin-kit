@@ -22,9 +22,15 @@ When in doubt, keep it out until a second consumer needs it.
 - **License**: MIT. New files start with the project's standard header
   or a one-line SPDX comment; by contributing you agree your work is
   distributed under MIT.
-- **No build step.** The package ships TypeScript source (`exports` point at
-  `.ts` files); consumers compile it with their own `tsc`. Do not add a
-  bundler or emit `dist/`.
+- **No build step** (with one exception). The package ships TypeScript source
+  (`exports` point at `.ts` files); consumers compile it with their own `tsc`.
+  The exception is the `./collapsible` subpath: its non-development export is
+  the prebuilt `dist/collapsible.js` from `build.ts` (`bun build.ts`), because a
+  registry install resolves a different module graph and cannot re-apply the
+  Solid JSX transform. Do not add any other bundler or emit anything else into
+  `dist/`. `dist/` is a build artifact — git-ignored and rebuilt by CI and the
+  publish workflow — but it is listed in `files` so the built collapsible entry
+  ships.
 - **Defensive reads only.** The OpenCode v2 plugin API still evolves; every
   helper that touches message/model/API shapes must read defensively (`??`, optional
   chaining) and return empty values rather than throw. `unwrap()` /
@@ -85,10 +91,26 @@ grep -h "failed to load plugin\|opencode-plugin-kit" \
 
 1. Create `src/<module>.ts` with a one-line purpose comment at the top.
 2. Export it from `src/index.ts`.
-3. Document it in the README's module table.
+3. Document it in the README's module table — and, if it owns a surface, in
+   [docs/SURFACES.md](docs/SURFACES.md).
 4. Add tests in `src/<module>.test.ts` that maintain 100% coverage.
 5. Refactor at least one consumer to use it in the same PR — a kit module
    with no consumer is dead code.
+
+## Where docs go
+
+Every fact has one canonical home; do not restate it elsewhere.
+
+- **Which module owns which surface, and when to use it** →
+  [docs/SURFACES.md](docs/SURFACES.md).
+- **Signatures, options and return shapes** → the README API Reference.
+- **Host APIs, the slot tree, endpoints, debugging** →
+  [docs/opencode2-api.md](docs/opencode2-api.md).
+- **Which host builds are verified** → [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md),
+  which is generated — edit [scripts/check-host-compat.mjs](scripts/check-host-compat.mjs),
+  not the doc.
+
+If you find the same fact in two places, delete one and link to the other.
 
 ## OpenCode API reference
 

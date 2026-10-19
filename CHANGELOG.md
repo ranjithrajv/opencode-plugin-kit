@@ -10,6 +10,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Behaviour-level coverage for the polling fetcher refresh-after-stop and post-error `inFlight()` reset semantics.
+- `theme.ts` — `toneColor()` maps semantic tones (`base`, `muted`, `error`, `warning`, `success`, `info`) onto host theme tokens, replacing per-plugin colour branches.
+- `util.ts` — `safe()` wraps throw-prone host reads.
+- `tokens.ts` — `tokenBreakdown()`, `messageCost()` and `estimateTokens()` normalize v1/v2 token and cost shapes.
+- `slot.ts` — `claimSlot()` claims a UI slot and always returns a callable cleanup.
+- `panel.ts` — `createPanel()` owns `session.panel` claim, name filtering, host open/close/fullscreen actions and active-state checks.
+- `persistedState.ts` — `createPersistedState()` provides a reactive persisted object across the memory, store and signal backends.
+- `layout.ts` — `budgetFor()`, `compactFor()` and `columnFor()` centralize sidebar width/row-budget math.
+- `format.ts` gains `compactNumber()`, `formatCost()`, `formatDuration()`, `formatClock()`, `formatDelta()`, `formatPercent()`, `shortPath()` and `truncate()`.
+- `commands.ts` gains `registerKeymapLayer()` for layers registered from a rendered component.
+- `KitSlotOptions` gains `before`/`replace` anchors, `KitUI` gains an optional `panel`, `KitStorage` gains an optional `memory`, and `KitKeymap.layer` accepts an optional layer-level `enabled`.
+- `jsonc.ts` — `cleanJsonc()`, `tolerantParse()`, `addPluginSpec()`, `addPluginsKey()`, `removePluginSpec()` and `editPluginsText()` read JSONC and edit a config's `plugins` array textually, preserving comments.
+- `hostEvents.ts` — `createHostEvents()` subscribes to host data events and keeps a heartbeat with a polling fallback.
+- `catalog.ts` — `listSkillCatalog()`, `syncSkillCatalog()`, `readSkillCatalog()` and `findAgentsMd()` centralize the location/sync/list dance and AGENTS.md discovery.
+- `messageIndex.ts` — `createMessageIndex()` builds an incremental, fingerprint-guarded, windowed index of session messages, keyed per context.
+- `statusbar.ts` — `createStatusbar()` claims a footer/status slot (`home.footer`, `home.footer.status`, `prompt.footer`, `prompt.footer.status`, `prompt.footer.file`) and degrades to a no-op on hosts without it.
+- `composer.ts` — `createComposer()` claims `session.composer.top` and exposes the last render input.
+- `palette.ts` — `paletteCommand()`, `registerPaletteCommand()`, `registerPaletteGroup()` and `dynamicPaletteCommand()` register command-palette entries through a rendered `app`-slot keymap layer.
+- `router.ts` — `createPage()`, `navigateTo()` and `currentRoute()` register and drive plugin pages on hosts that expose `ui.router`.
+- `attention.ts` — `requestAttention()`, `notifyTaskComplete()` and `notifyError()` request a notification/sound and fall back to a toast.
+- `tabs.ts` — `createTabs()` reads and controls session tabs (open/focus/move/close/active), no-op on hosts without tab support.
+- `KitRouter`, `KitTabs` and `KitAttention` host-contract types; `KitUI` gains optional `router` and `tabs`.
+- `QUICKSTART.md` and `examples/hello-plugin/` — a from-scratch guide and a minimal working plugin.
+- `docs/SURFACES.md` — maps every plugin surface (sidebar, footer/status, composer, panel, pages, palette, tabs, attention) to the module that owns it.
+- `docs/COMPATIBILITY.md` — the published host compatibility matrix.
+- `tests/runtime-smoke.test.ts` (`npm run test:smoke`) — imports the real `@opencode/plugin` runtime and executes every kit factory against a host-shaped context, catching import-time and runtime breakage the type-tripwire cannot see.
+- `scripts/check-host-compat.mjs` (`npm run check:host-compat`) now runs **both** the type tripwire and the runtime smoke against each pinned `@opencode/plugin` version, reports per-check results, and can refresh the matrix with `--write-matrix`.
+- `.github/workflows/host-compat.yml` — a version matrix that runs the compatibility checks on every push and PR.
+
+### Changed
+
+- `tabs.ts` — `active()` and `isOpen()` drop redundant try/catch around the internal `list()`, which already swallows host errors.
+- `publish.yml` gains a host-compatibility gate before `npm publish`, so a release that breaks a supported host cannot be published.
+- `package.json#files` again includes `dist/` — the built `./collapsible` entry (`dist/collapsible.js`) is the non-development export, so dropping it from the tarball would have broken the published subpath.
 
 ## [1.0.0-alpha.7] - 2026-09-28
 
