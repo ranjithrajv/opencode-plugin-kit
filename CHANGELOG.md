@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0-alpha.8] - 2026-10-19
 
 ### Added
 
@@ -146,7 +146,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI
 - Pre-commit hooks via `vp staged`
 
-[Unreleased]: https://github.com/ranjithrajv/opencode-plugin-kit/compare/v1.0.0-alpha.7...HEAD
+[Unreleased]: https://github.com/ranjithrajv/opencode-plugin-kit/compare/v1.0.0-alpha.8...HEAD
+[1.0.0-alpha.8]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.8
 [1.0.0-alpha.7]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.7
 [1.0.0-alpha.6]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.6
 [1.0.0-alpha.5]: https://github.com/ranjithrajv/opencode-plugin-kit/releases/tag/v1.0.0-alpha.5

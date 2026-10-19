@@ -31,8 +31,10 @@ plugin's README).
 
 ## Status
 
-**v1.0.0-alpha.7** — API stabilized, ready for integration testing. Ships the
-OpenCode v2 host contract; requires `@opencode/plugin` 2.0.3 or newer.
+**v1.0.0-alpha.8** — API stabilized, ready for integration testing. Ships the
+OpenCode v2 host contract across the sidebar, footer/status, composer, panel,
+pages, palette, tabs, and attention; requires `@opencode/plugin` 2.0.3 or
+newer.
 
 ## Quick Start
 
